@@ -1,0 +1,4 @@
+data: {"candidates": [{"content": {"parts": [{"functionCall": {"name": "run_command","args": {"command": "npm test"},"id": "call_1351820"},"thoughtSignature": "EmAKXgFpFH0TE39tY7jpqLteWEcgEbTQDP1uYJ32gOBtNXbzHbK2+iS9IWfGF7Nypno90fYAeojffL6wXOsd0F5EVP80lwG3WM4QkevbaQZG2Q9Th/hJ1NILwS8BOpQmiSA="}],"role": "model"},"index": 0}],"usageMetadata": {"promptTokenCount": 2323,"candidatesTokenCount": 17,"totalTokenCount": 2340,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 2323}],"serviceTier": "standard"},"modelVersion": "gemini-3.5-flash-lite","responseId": "pB_Iavr7JarxnsEPytWFwAg"}
+
+data: {"candidates": [{"content": {"parts": [{"text": ""}],"role": "model"},"finishReason": "STOP","index": 0}],"usageMetadata": {"promptTokenCount": 2323,"candidatesTokenCount": 17,"totalTokenCount": 2340,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 2323}],"serviceTier": "standard"},"modelVersion": "gemini-3.5-flash-lite","responseId": "pB_Iavr7JarxnsEPytWFwAg"}
+

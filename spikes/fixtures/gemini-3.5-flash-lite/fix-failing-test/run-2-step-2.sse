@@ -1,0 +1,4 @@
+data: {"candidates": [{"content": {"parts": [{"functionCall": {"name": "list_files","args": {},"id": "call_888632"},"thoughtSignature": "EmAKXgFpFH0TjpujhI6PAkrAtwD8WX8yUo7YMKGHjnb3/qVTtoP5v+MvZuXttC9/7BTfdVqyxiyt1lDcrenryZrIy7J+WSXHur+IhXB+Aaxq7yrLZnov/p+jFgvPOf68CH4="}],"role": "model"},"index": 0}],"usageMetadata": {"promptTokenCount": 1381,"candidatesTokenCount": 10,"totalTokenCount": 1391,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 1381}],"serviceTier": "standard"},"modelVersion": "gemini-3.5-flash-lite","responseId": "kh_IarLDJ-rZ7M8PrLiggQc"}
+
+data: {"candidates": [{"content": {"parts": [{"text": ""}],"role": "model"},"finishReason": "STOP","index": 0}],"usageMetadata": {"promptTokenCount": 1381,"candidatesTokenCount": 10,"totalTokenCount": 1391,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 1381}],"serviceTier": "standard"},"modelVersion": "gemini-3.5-flash-lite","responseId": "kh_IarLDJ-rZ7M8PrLiggQc"}
+

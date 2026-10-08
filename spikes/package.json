@@ -1,0 +1,8 @@
+{
+  "name": "coding-agent-spikes",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "zod": "^4.6.5"
+  }
+}
