@@ -16,3 +16,5 @@ spikes/work/
 
 # Execution ledger (local)
 .superpowers/
+
+*.tsbuildinfo
