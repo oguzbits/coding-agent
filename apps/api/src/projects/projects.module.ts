@@ -6,6 +6,7 @@ import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
 import type { Env } from '../config/env.validation.js';
 import { Project } from './project.entity.js';
+import { ProjectFilesService } from './project-files.service.js';
 import { ProjectsController } from './projects.controller.js';
 import { ProjectsService } from './projects.service.js';
 
@@ -13,6 +14,7 @@ import { ProjectsService } from './projects.service.js';
   imports: [TypeOrmModule.forFeature([Project])],
   controllers: [ProjectsController],
   providers: [
+    ProjectFilesService,
     {
       provide: ProjectsService,
       inject: [getRepositoryToken(Project), ConfigService],
