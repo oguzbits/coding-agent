@@ -21,9 +21,9 @@ import {
   ApprovalDto,
   ConversationDto,
   CreateConversationDto,
-  RenameConversationDto,
   RunStartedDto,
   SendMessageDto,
+  UpdateConversationDto,
 } from './conversations.dto.js';
 import { ConversationsService } from './conversations.service.js';
 import type { Conversation } from './conversation.entity.js';
@@ -73,12 +73,12 @@ export class ConversationsController {
 
   @Patch(':id')
   @ApiOkResponse({ type: ConversationDto })
-  async rename(
+  async update(
     @CurrentUser() user: Express.User,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: RenameConversationDto,
+    @Body() dto: UpdateConversationDto,
   ): Promise<ConversationDto> {
-    return view(await this.conversations.rename(user.id, id, dto.title));
+    return view(await this.conversations.update(user.id, id, dto));
   }
 
   @Delete(':id')
@@ -87,6 +87,7 @@ export class ConversationsController {
     await this.conversations.getOwned(user.id, id);
     await this.runs.stop(user.id, id);
     await this.conversations.remove(user.id, id);
+    this.runs.forgetConversation(id);
   }
 
   @Post(':id/messages')

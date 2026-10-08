@@ -13,6 +13,7 @@ const isProtected = (segment: string) => !ALLOWED_PROTECTED.has(segment) && PROT
  */
 export class Workspace {
   private realRoot?: Promise<string>;
+  private realRootPath?: string;
 
   constructor(readonly root: string) {}
 
@@ -20,6 +21,7 @@ export class Workspace {
     if (!requested.trim() || requested.includes('\0')) throw new ToolError('The path is empty or invalid.');
     this.realRoot ??= realpath(this.root);
     const root = await this.realRoot;
+    this.realRootPath = root;
     const lexical = path.resolve(root, requested);
     this.assertInside(root, lexical);
     this.assertNotProtected(root, lexical);
@@ -29,8 +31,16 @@ export class Workspace {
     return lexical;
   }
 
+  /** Lexical check of a path relative to the root. Used to filter listings and search results. */
+  isProtected(relative: string): boolean {
+    return relative.split(/[\\/]/).some((segment) => isProtected(segment.normalize('NFC').toLowerCase()));
+  }
+
   display(absolute: string): string {
-    return path.relative(this.root, absolute).split(path.sep).join('/');
+    return path
+      .relative(this.realRootPath ?? this.root, absolute)
+      .split(path.sep)
+      .join('/');
   }
 
   private assertInside(root: string, candidate: string) {
@@ -41,8 +51,7 @@ export class Workspace {
   }
 
   private assertNotProtected(root: string, candidate: string) {
-    const segments = path.relative(root, candidate).split(path.sep);
-    if (segments.some((segment) => isProtected(segment.normalize('NFC').toLowerCase()))) {
+    if (this.isProtected(path.relative(root, candidate))) {
       throw new ToolError('That path is protected (secrets and git internals are off limits).');
     }
   }

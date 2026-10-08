@@ -20,12 +20,14 @@ describe('DemoProvider', () => {
     expect(turn.text).toBe('You said: hello');
   });
 
-  it('turns "read <path>" into a read_file call and "note <text>" into an append_note call', async () => {
+  it('turns "read <path>" into a read_file call and "write <path> <content>" into a write_file call', async () => {
     const read = await provider.generate(request(said('read src/a.txt')), signal);
     expect(read.toolCalls).toMatchObject([{ name: 'read_file', args: { path: 'src/a.txt' } }]);
-    const note = await provider.generate(request(said('note remember this')), signal);
-    expect(note.toolCalls).toMatchObject([{ name: 'append_note', args: { text: 'remember this' } }]);
-    expect(note.toolCalls[0].id).toBeTruthy();
+    const write = await provider.generate(request(said('write NOTES.md remember this')), signal);
+    expect(write.toolCalls).toMatchObject([
+      { name: 'write_file', args: { path: 'NOTES.md', content: 'remember this' } },
+    ]);
+    expect(write.toolCalls[0].id).toBeTruthy();
   });
 
   it('reports the tool result after a call', async () => {

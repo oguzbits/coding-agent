@@ -32,7 +32,7 @@ export class Conversation {
   @Column({ type: 'text' })
   title!: string;
 
-  /** Permission mode; the policy service (slice 6a) decides what each mode allows. */
+  /** Permission mode (ask, auto_edit or plan); ModePolicy decides what each mode allows. */
   @Column({ type: 'text', default: 'ask' })
   mode!: string;
 

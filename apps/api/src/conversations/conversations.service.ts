@@ -46,9 +46,10 @@ export class ConversationsService {
     return conversation;
   }
 
-  async rename(userId: string, id: string, title: string): Promise<Conversation> {
+  async update(userId: string, id: string, changes: { title?: string; mode?: string }): Promise<Conversation> {
     const conversation = await this.getOwned(userId, id);
-    conversation.title = title;
+    if (changes.title !== undefined) conversation.title = changes.title;
+    if (changes.mode !== undefined) conversation.mode = changes.mode;
     return this.conversations.save(conversation);
   }
 

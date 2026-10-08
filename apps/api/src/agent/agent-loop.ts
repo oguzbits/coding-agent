@@ -166,16 +166,14 @@ async function handleCall(deps: AgentDeps, call: ToolCall): Promise<ToolResultFo
     return finish(`Invalid arguments for ${tool.name}: ${issues.join('; ')}`, true);
   }
 
+  const failure = await runStep(() => tool.precheck?.(parsed.data));
+  if (failure) return finish(failure, true);
+
   const decision = deps.policy.decide(tool, parsed.data);
   if (decision === 'reject') return finish('This action is not allowed in the current mode.', true);
   if (decision === 'ask') {
-    await sink.emit({
-      type: 'approval_requested',
-      callId: call.id,
-      name: call.name,
-      args: parsed.data,
-      preview: tool.preview(parsed.data),
-    });
+    const preview = await tool.preview(parsed.data).catch(() => 'No preview available.');
+    await sink.emit({ type: 'approval_requested', callId: call.id, name: call.name, args: parsed.data, preview });
     await sink.setState('awaiting_approval');
     const approved = await deps.approvals.request(call.id, signal);
     await sink.emit({ type: 'approval_resolved', callId: call.id, approved });
@@ -183,11 +181,21 @@ async function handleCall(deps: AgentDeps, call: ToolCall): Promise<ToolResultFo
     if (!approved) return finish('The user declined this action.', true);
   }
 
+  let output = '';
+  const executionFailure = await runStep(async () => {
+    output = await tool.execute(parsed.data, { signal });
+  });
+  return executionFailure ? finish(executionFailure, true) : finish(output, false);
+}
+
+/** Runs one step of a tool call. Returns the message for the model if it failed, undefined if it worked. */
+async function runStep(step: () => Promise<unknown> | undefined): Promise<string | undefined> {
   try {
-    return await finish(await tool.execute(parsed.data, { signal }), false);
+    await step();
+    return undefined;
   } catch (error) {
     if (isAbort(error)) throw error;
-    return finish(error instanceof ToolError ? error.message : 'The tool failed with an unexpected error.', true);
+    return error instanceof ToolError ? error.message : 'The tool failed with an unexpected error.';
   }
 }
 

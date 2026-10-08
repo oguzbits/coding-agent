@@ -10,6 +10,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, In } from 'typeorm';
 import { repairHistory } from '../agent/repair-history.js';
 import { runAgent } from '../agent/agent-loop.js';
+import type { ToolSession } from '../agent/tools/create-tools.js';
 import type { AgentLimits, AgentTool, RunEvent, RunSink, RunState, ToolPolicy } from '../agent/types.js';
 import { requestContext } from '../logging/request-context.js';
 import type { HistoryEntry, ModelProvider } from '../model/model-provider.js';
@@ -23,8 +24,10 @@ import { RunEventsService } from './run-events.service.js';
 import { Run } from './run.entity.js';
 
 export const CREATE_TOOLS = Symbol('CREATE_TOOLS');
-export type ToolFactory = (workspace: Workspace) => AgentTool[];
+export type ToolFactory = (workspace: Workspace, session: ToolSession) => AgentTool[];
 export const AGENT_POLICY = Symbol('AGENT_POLICY');
+/** Builds the policy for one run from the conversation's permission mode. */
+export type PolicyFactory = (mode: string) => ToolPolicy;
 export const AGENT_LIMITS = Symbol('AGENT_LIMITS');
 export const AGENT_SYSTEM_PROMPT = Symbol('AGENT_SYSTEM_PROMPT');
 
@@ -44,6 +47,8 @@ const TERMINAL_STATES: RunState[] = ['finished', 'aborted', 'failed'];
 export class RunsService implements OnApplicationBootstrap {
   private readonly logger = new Logger(RunsService.name);
   private readonly active = new Map<string, ActiveRun>();
+  /** What the tools remember per conversation, e.g. which files were read. Lost on restart, which is safe. */
+  private readonly sessions = new Map<string, { projectId: string; session: ToolSession }>();
 
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
@@ -52,13 +57,18 @@ export class RunsService implements OnApplicationBootstrap {
     private readonly gateway: ModelGateway,
     @Inject(CREATE_TOOLS) private readonly createTools: ToolFactory,
     private readonly projects: ProjectsService,
-    @Inject(AGENT_POLICY) private readonly policy: ToolPolicy,
+    @Inject(AGENT_POLICY) private readonly createPolicy: PolicyFactory,
     @Inject(AGENT_LIMITS) private readonly limits: AgentLimits,
     @Inject(AGENT_SYSTEM_PROMPT) private readonly systemPrompt: string,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
-    this.projects.onBeforeRemove((userId, projectId) => this.stopProject(userId, projectId));
+    this.projects.onBeforeRemove(async (userId, projectId) => {
+      await this.stopProject(userId, projectId);
+      for (const [conversationId, { projectId: owner }] of this.sessions) {
+        if (owner === projectId) this.sessions.delete(conversationId);
+      }
+    });
     await this.abortLeftoverRuns();
   }
 
@@ -127,6 +137,11 @@ export class RunsService implements OnApplicationBootstrap {
     await active.done;
   }
 
+  /** Drops what the tools remembered about a conversation. Called when it is deleted. */
+  forgetConversation(conversationId: string): void {
+    this.sessions.delete(conversationId);
+  }
+
   /** Stops the user's run if it works in this project. Used before a project is deleted. */
   async stopProject(userId: string, projectId: string): Promise<void> {
     const active = this.active.get(userId);
@@ -190,8 +205,8 @@ export class RunsService implements OnApplicationBootstrap {
         runAgent(
           {
             provider: prepared.forRun(runId),
-            tools: this.createTools(workspace),
-            policy: this.policy,
+            tools: this.createTools(workspace, this.sessionOf(conversation)),
+            policy: this.createPolicy(conversation.mode),
             approvals: active.approvals,
             sink,
             limits: this.limits,
@@ -205,6 +220,15 @@ export class RunsService implements OnApplicationBootstrap {
       this.logger.error(`Run ${runId} failed: ${error instanceof Error ? error.message : 'unknown error'}`);
       await this.markFailed(conversationId, runId);
     }
+  }
+
+  private sessionOf(conversation: Conversation): ToolSession {
+    let entry = this.sessions.get(conversation.id);
+    if (!entry) {
+      entry = { projectId: conversation.projectId, session: { readFiles: new Set() } };
+      this.sessions.set(conversation.id, entry);
+    }
+    return entry.session;
   }
 
   private async markFailed(conversationId: string, runId: string): Promise<void> {

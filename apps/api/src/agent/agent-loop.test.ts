@@ -24,13 +24,19 @@ const call = (name: string, args: unknown, id: string, extra: ProviderPart = {})
 });
 const text = (value: string): ProviderPart => ({ text: value });
 
-function makeTool(name: string, run: (args: { value: string }) => Promise<string> | string): AgentTool {
+function makeTool(
+  name: string,
+  run: (args: { value: string }) => Promise<string> | string,
+  precheck?: AgentTool['precheck'],
+): AgentTool {
   return {
     name,
     description: `${name} tool`,
+    kind: 'edit',
     schema: z.object({ value: z.string() }),
-    preview: (args) => `preview:${(args as { value: string }).value}`,
+    preview: async (args) => `preview:${(args as { value: string }).value}`,
     execute: async (args) => run(args as { value: string }),
+    ...(precheck ? { precheck } : {}),
   };
 }
 
@@ -199,6 +205,40 @@ describe('runAgent', () => {
       expect(ran).toBe(false);
       expect(results(ctx.events)[0]).toMatchObject({ isError: true });
       expect(results(ctx.events)[0].output).toMatch(/declined/i);
+    });
+
+    it('checks a call before asking and returns a failed check to the model without asking', async () => {
+      let ran = false;
+      const tools = [
+        makeTool(
+          'echo',
+          () => ((ran = true), 'x'),
+          async () => {
+            throw new ToolError('Read the file first');
+          },
+        ),
+      ];
+      const ctx = setup([turnFromParts([call('echo', { value: 'w' }, 'c1')]), turnFromParts([text('ok')])], { tools });
+      ctx.setDecision('ask');
+      await ctx.run();
+      expect(types(ctx.events)).not.toContain('approval_requested');
+      expect(ran).toBe(false);
+      expect(results(ctx.events)[0]).toMatchObject({ isError: true, output: 'Read the file first' });
+    });
+
+    it('hides the details of an unexpected failure in the check', async () => {
+      const tools = [
+        makeTool(
+          'echo',
+          () => 'x',
+          async () => {
+            throw new Error('ENOENT /secret/path');
+          },
+        ),
+      ];
+      const ctx = setup([turnFromParts([call('echo', { value: 'w' }, 'c1')]), turnFromParts([text('ok')])], { tools });
+      await ctx.run();
+      expect(results(ctx.events)[0].output).not.toContain('/secret/path');
     });
 
     it('rejects without asking when the policy says reject', async () => {

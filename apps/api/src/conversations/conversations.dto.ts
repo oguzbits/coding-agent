@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { IsBoolean, IsIn, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { PERMISSION_MODES } from '../agent/mode-policy.js';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 
@@ -16,12 +17,18 @@ export class CreateConversationDto {
   title?: string;
 }
 
-export class RenameConversationDto {
+export class UpdateConversationDto {
+  @IsOptional()
   @Transform(trim)
   @IsString()
   @MinLength(1)
   @MaxLength(200)
-  title!: string;
+  title?: string;
+
+  @IsOptional()
+  @IsIn(PERMISSION_MODES)
+  @ApiProperty({ enum: PERMISSION_MODES, required: false })
+  mode?: string;
 }
 
 export class SendMessageDto {

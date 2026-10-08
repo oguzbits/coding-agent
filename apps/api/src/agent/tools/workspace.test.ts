@@ -79,6 +79,14 @@ describe('Workspace', () => {
     await expect(workspace.resolve('café/.env')).rejects.toThrow(/protected/i);
   });
 
+  it('tells whether a relative path is protected, without touching the disk', () => {
+    expect(workspace.isProtected('.env')).toBe(true);
+    expect(workspace.isProtected('src/.Git/config')).toBe(true);
+    expect(workspace.isProtected('keys/server.PEM')).toBe(true);
+    expect(workspace.isProtected('.env.example')).toBe(false);
+    expect(workspace.isProtected('src/a.txt')).toBe(false);
+  });
+
   it('makes paths relative for display', async () => {
     expect(workspace.display(path.join(root, 'src', 'a.txt'))).toBe('src/a.txt');
   });

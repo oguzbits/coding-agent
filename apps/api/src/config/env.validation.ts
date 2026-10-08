@@ -153,6 +153,61 @@ export class Env {
   @Transform(toNumber)
   @IsInt()
   @Min(1)
+  AGENT_READ_MAX_LINES = 2000;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_LIST_MAX_ENTRIES = 500;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_LIST_DEFAULT_DEPTH = 2;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_SEARCH_MAX_MATCHES = 100;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_SEARCH_LINE_MAX_CHARS = 300;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_SEARCH_TIMEOUT_SECONDS = 15;
+
+  /** Largest file the agent may write in one call. */
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_WRITE_MAX_BYTES = 200_000;
+
+  /** Largest part of a file the project file viewer returns. */
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  PROJECT_FILE_VIEW_MAX_BYTES = 1_000_000;
+
+  /** Files and folders that can run code later. In auto-edit mode, changing them still needs approval. */
+  @Transform(({ value }) =>
+    typeof value === 'string'
+      ? value
+          .split(',')
+          .map((entry: string) => entry.trim())
+          .filter(Boolean)
+      : value,
+  )
+  @IsArray()
+  @IsString({ each: true })
+  AGENT_SELF_EXECUTING_PATHS: string[] = ['package.json', '.github', '.husky', 'Makefile', '.npmrc'];
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
   SSE_HEARTBEAT_SECONDS = 15;
 
   @Transform(({ value }) =>

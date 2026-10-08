@@ -29,12 +29,20 @@ export type RunState = 'running' | 'awaiting_approval' | 'finished' | 'aborted' 
 /** Thrown by a tool for failures the model can act on. The message goes back to the model as the tool result. */
 export class ToolError extends Error {}
 
+/** What a tool does to the project; the policy decides by it. */
+export type ToolKind = 'read' | 'edit' | 'command';
+
 export interface AgentTool<Schema extends z.ZodType = z.ZodType> {
   name: string;
   description: string;
+  kind: ToolKind;
   schema: Schema;
-  /** Short text for the approval dialog (a diff, a command line). */
-  preview(args: z.infer<Schema>): string;
+  /** The paths (relative to the project) the call would change. The policy asks more carefully for some of them. */
+  targets?(args: z.infer<Schema>): string[];
+  /** Fails with a ToolError if the call cannot work, so the user is not asked to approve something doomed. */
+  precheck?(args: z.infer<Schema>): Promise<void>;
+  /** What will happen, for the approval dialog (a diff, a command line). */
+  preview(args: z.infer<Schema>): Promise<string>;
   execute(args: z.infer<Schema>, context: { signal: AbortSignal }): Promise<string>;
 }
 

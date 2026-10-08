@@ -1,37 +1,62 @@
-import { open } from 'node:fs/promises';
 import { z } from 'zod';
 import { ToolError, type AgentTool } from '../types.js';
+import { numberLine, readTextFile, splitLines } from './file-access.js';
 import type { Workspace } from './workspace.js';
 
-const schema = z.strictObject({ path: z.string().describe('File path relative to the workspace root') });
+export interface ReadLimits {
+  readMaxLines: number;
+  readMaxBytes: number;
+}
 
-export function createReadFileTool(workspace: Workspace, options: { maxBytes: number }): AgentTool<typeof schema> {
+const schema = z.strictObject({
+  path: z.string().describe('File path relative to the project root'),
+  offset: z.number().int().min(1).optional().describe('First line to read, counting from 1. Default 1.'),
+  limit: z.number().int().min(1).optional().describe('Maximum number of lines to return.'),
+});
+
+/** Lines [start, start + maxLines) as numbered text, stopping early when the byte budget is used up. */
+function pick(lines: string[], start: number, limits: ReadLimits, maxLines: number): string[] {
+  const picked: string[] = [];
+  let bytes = 0;
+  for (let index = start - 1; index < lines.length && picked.length < maxLines; index += 1) {
+    let text = numberLine(index + 1, lines[index]);
+    if (picked.length > 0 && bytes + Buffer.byteLength(text) + 1 > limits.readMaxBytes) break;
+    if (text.length > limits.readMaxBytes) text = `${text.slice(0, limits.readMaxBytes)} [line shortened]`;
+    bytes += Buffer.byteLength(text) + 1;
+    picked.push(text);
+  }
+  return picked;
+}
+
+export function createReadFileTool(
+  workspace: Workspace,
+  session: { readFiles: Set<string> },
+  limits: ReadLimits,
+): AgentTool<typeof schema> {
   return {
     name: 'read_file',
-    description: 'Reads a text file from the workspace and returns its content.',
+    description:
+      'Reads a text file and returns numbered lines. Long files are returned in parts: use offset and limit to ' +
+      'continue. A file must be read before it can be edited or replaced.',
+    kind: 'read',
     schema,
-    preview: (args) => `Read ${args.path}`,
+    preview: async (args) => `Read ${args.path}`,
     async execute(args) {
-      const target = await workspace.resolve(args.path);
-      let handle;
-      try {
-        handle = await open(target, 'r');
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new ToolError(`File not found: ${args.path}`);
-        throw error;
+      const { target, text } = await readTextFile(workspace, args.path);
+      session.readFiles.add(target);
+      const lines = splitLines(text);
+      if (lines.length === 0) return `${args.path} is empty.`;
+      const start = args.offset ?? 1;
+      if (start > lines.length) {
+        throw new ToolError(`Offset ${start} is past the end of the file (${lines.length} lines).`);
       }
-      try {
-        const info = await handle.stat();
-        if (!info.isFile()) throw new ToolError(`${args.path} is not a file.`);
-        const buffer = Buffer.alloc(Math.min(info.size, options.maxBytes));
-        const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
-        const bytes = buffer.subarray(0, bytesRead);
-        if (bytes.includes(0)) throw new ToolError(`${args.path} looks like a binary file and cannot be read as text.`);
-        const text = bytes.toString('utf8');
-        return info.size > options.maxBytes ? `${text}\n[file continues: ${info.size - bytesRead} more bytes]` : text;
-      } finally {
-        await handle.close();
-      }
+      const picked = pick(lines, start, limits, Math.min(args.limit ?? limits.readMaxLines, limits.readMaxLines));
+      const end = start + picked.length - 1;
+      const notice =
+        end < lines.length
+          ? `\n[Showing lines ${start}-${end} of ${lines.length}. Continue with offset=${end + 1}.]`
+          : '';
+      return picked.join('\n') + notice;
     },
   };
 }

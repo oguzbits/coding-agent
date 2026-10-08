@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { StaticPolicy } from '../agent/static-policy.js';
+import { rgPath } from '@vscode/ripgrep';
+import { ModePolicy, PERMISSION_MODES, type PermissionMode } from '../agent/mode-policy.js';
 import { SYSTEM_PROMPT } from '../agent/system-prompt.js';
-import { createAppendNoteTool } from '../agent/tools/append-note.tool.js';
-import { createReadFileTool } from '../agent/tools/read-file.tool.js';
+import { createWorkspaceTools, type ToolLimits, type ToolSession } from '../agent/tools/create-tools.js';
 import { Workspace } from '../agent/tools/workspace.js';
 import { ProjectsModule } from '../projects/projects.module.js';
 import type { AgentLimits, AgentTool } from '../agent/types.js';
@@ -23,6 +23,7 @@ import {
   AGENT_SYSTEM_PROMPT,
   CREATE_TOOLS,
   RunsService,
+  type PolicyFactory,
   type ToolFactory,
 } from './runs.service.js';
 
@@ -36,7 +37,17 @@ type AppConfig = ConfigService<Env, true>;
     RunEventsService,
     RunsService,
     { provide: AGENT_SYSTEM_PROMPT, useValue: SYSTEM_PROMPT },
-    { provide: AGENT_POLICY, useFactory: () => new StaticPolicy(['read_file']) },
+    {
+      provide: AGENT_POLICY,
+      inject: [ConfigService],
+      useFactory: (config: AppConfig): PolicyFactory => {
+        const selfExecuting = config.get('AGENT_SELF_EXECUTING_PATHS', { infer: true });
+        return (mode) => {
+          const known = (PERMISSION_MODES as readonly string[]).includes(mode);
+          return new ModePolicy(known ? (mode as PermissionMode) : 'ask', selfExecuting);
+        };
+      },
+    },
     {
       provide: AGENT_LIMITS,
       inject: [ConfigService],
@@ -51,12 +62,19 @@ type AppConfig = ConfigService<Env, true>;
       provide: CREATE_TOOLS,
       inject: [ConfigService],
       useFactory: (config: AppConfig): ToolFactory => {
-        const readMaxBytes = config.get('AGENT_READ_MAX_BYTES', { infer: true });
-        return (workspace: Workspace): AgentTool[] => [
-          createReadFileTool(workspace, { maxBytes: readMaxBytes }),
-          // Test tool that needs approval; goes away when the edit tools arrive.
-          createAppendNoteTool(workspace),
-        ];
+        const limits: ToolLimits = {
+          readMaxLines: config.get('AGENT_READ_MAX_LINES', { infer: true }),
+          readMaxBytes: config.get('AGENT_READ_MAX_BYTES', { infer: true }),
+          listMaxEntries: config.get('AGENT_LIST_MAX_ENTRIES', { infer: true }),
+          listDefaultDepth: config.get('AGENT_LIST_DEFAULT_DEPTH', { infer: true }),
+          searchMaxMatches: config.get('AGENT_SEARCH_MAX_MATCHES', { infer: true }),
+          searchLineMaxChars: config.get('AGENT_SEARCH_LINE_MAX_CHARS', { infer: true }),
+          searchTimeoutMs: config.get('AGENT_SEARCH_TIMEOUT_SECONDS', { infer: true }) * 1000,
+          writeMaxBytes: config.get('AGENT_WRITE_MAX_BYTES', { infer: true }),
+          rgPath,
+        };
+        return (workspace: Workspace, session: ToolSession): AgentTool[] =>
+          createWorkspaceTools(workspace, session, limits);
       },
     },
   ],

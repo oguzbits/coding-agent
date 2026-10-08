@@ -190,7 +190,7 @@ describe('conversations and runs (HTTP, fake model)', () => {
         'assistant_message',
         'run_finished',
       ]);
-      expect(stored[2].payload).toMatchObject({ isError: false, output: 'file content' });
+      expect(stored[2].payload).toMatchObject({ isError: false, output: '     1\tfile content' });
     });
 
     it('gives the model an error instead of a protected file', async () => {
@@ -205,12 +205,12 @@ describe('conversations and runs (HTTP, fake model)', () => {
 
     it('waits for approval, then runs the approved action', async () => {
       const id = await createConversation(alice);
-      await send(alice, id, 'note buy milk');
+      await send(alice, id, 'write NOTES.md buy milk');
       const requested = await waitForEvent(id, 'approval_requested');
       await waitForState(id, 'awaiting_approval');
-      expect(requested.payload).toMatchObject({ name: 'append_note', preview: expect.stringContaining('buy milk') });
+      expect(requested.payload).toMatchObject({ name: 'write_file', preview: expect.stringContaining('+buy milk') });
       const active = (await call(alice, 'get', `/conversations/${id}`)).body.activeRun;
-      expect(active).toMatchObject({ state: 'awaiting_approval', pendingApproval: { name: 'append_note' } });
+      expect(active).toMatchObject({ state: 'awaiting_approval', pendingApproval: { name: 'write_file' } });
 
       const callId = String(requested.payload.callId);
       expect((await call(bob, 'post', `/conversations/${id}/approvals`).send({ callId, approved: true })).status).toBe(
@@ -219,18 +219,55 @@ describe('conversations and runs (HTTP, fake model)', () => {
       const answer = await call(alice, 'post', `/conversations/${id}/approvals`).send({ callId, approved: true });
       expect(answer.status).toBe(204);
       await waitForState(id, 'finished');
-      expect(await readFile(path.join(await workspaceOf(id), 'NOTES.md'), 'utf8')).toBe('buy milk\n');
+      expect(await readFile(path.join(await workspaceOf(id), 'NOTES.md'), 'utf8')).toBe('buy milk');
     });
 
     it('does not run a declined action', async () => {
       const id = await createConversation(alice);
-      await send(alice, id, 'note secret plan');
+      await send(alice, id, 'write NOTES.md secret plan');
       const requested = await waitForEvent(id, 'approval_requested');
       await call(alice, 'post', `/conversations/${id}/approvals`).send({
         callId: String(requested.payload.callId),
         approved: false,
       });
       await waitForState(id, 'finished');
+      await expect(readFile(path.join(await workspaceOf(id), 'NOTES.md'), 'utf8')).rejects.toThrow();
+    });
+
+    it('changes the permission mode and rejects unknown modes', async () => {
+      const id = await createConversation(alice);
+      expect((await call(alice, 'get', `/conversations/${id}`)).body.mode).toBe('ask');
+      const changed = await call(alice, 'patch', `/conversations/${id}`).send({ mode: 'auto_edit' });
+      expect(changed.body).toMatchObject({ mode: 'auto_edit' });
+      expect((await call(alice, 'patch', `/conversations/${id}`).send({ mode: 'yolo' })).status).toBe(400);
+      expect((await call(bob, 'patch', `/conversations/${id}`).send({ mode: 'plan' })).status).toBe(404);
+    });
+
+    it('applies file edits without asking in auto_edit mode', async () => {
+      const id = await createConversation(alice);
+      await call(alice, 'patch', `/conversations/${id}`).send({ mode: 'auto_edit' });
+      await send(alice, id, 'write NOTES.md buy milk');
+      await waitForState(id, 'finished');
+      expect((await events(id)).map((event) => event.type)).not.toContain('approval_requested');
+      expect(await readFile(path.join(await workspaceOf(id), 'NOTES.md'), 'utf8')).toBe('buy milk');
+    });
+
+    it('still asks in auto_edit mode for a file that can run code', async () => {
+      const id = await createConversation(alice);
+      await call(alice, 'patch', `/conversations/${id}`).send({ mode: 'auto_edit' });
+      await send(alice, id, 'write package.json {}');
+      await waitForEvent(id, 'approval_requested');
+      await call(alice, 'post', `/conversations/${id}/abort`);
+      await waitForState(id, 'aborted');
+    });
+
+    it('refuses changes in plan mode', async () => {
+      const id = await createConversation(alice);
+      await call(alice, 'patch', `/conversations/${id}`).send({ mode: 'plan' });
+      await send(alice, id, 'write NOTES.md nope');
+      await waitForState(id, 'finished');
+      const result = (await events(id)).find((event) => event.type === 'tool_result');
+      expect(result?.payload).toMatchObject({ isError: true, output: expect.stringMatching(/not allowed/i) });
       await expect(readFile(path.join(await workspaceOf(id), 'NOTES.md'), 'utf8')).rejects.toThrow();
     });
 
@@ -308,11 +345,11 @@ describe('conversations and runs (HTTP, fake model)', () => {
       const id = await createConversation(alice);
       await dataSource.query(`INSERT INTO messages (conversation_id, role, parts) VALUES ($1, 'user', $2)`, [
         id,
-        JSON.stringify([{ text: 'note x' }]),
+        JSON.stringify([{ text: 'write x x' }]),
       ]);
       await dataSource.query(`INSERT INTO messages (conversation_id, role, parts) VALUES ($1, 'model', $2)`, [
         id,
-        JSON.stringify([{ functionCall: { name: 'append_note', args: { text: 'x' }, id: 'old' } }]),
+        JSON.stringify([{ functionCall: { name: 'write_file', args: { path: 'x', content: 'x' }, id: 'old' } }]),
       ]);
       await send(alice, id, 'hello');
       await waitForState(id, 'finished');

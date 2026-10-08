@@ -22,7 +22,7 @@ const lastToolResult = (history: HistoryEntry[]): string | undefined => {
 
 /**
  * Answers from simple commands in the user's message, so the whole app can run without a model:
- * `read <path>`, `note <text>`, `slow` (waits, abortable), anything else is echoed.
+ * `read <path>`, `write <path> <content>`, `slow` (waits, abortable), anything else is echoed.
  */
 export class DemoProvider extends GeminiPartFormat {
   async generate(request: ModelRequest, signal: AbortSignal): Promise<ModelTurn> {
@@ -33,7 +33,10 @@ export class DemoProvider extends GeminiPartFormat {
     const text = lastUserText(request.history) ?? '';
     const call = (name: string, args: unknown): ProviderPart => ({ functionCall: { name, args, id: randomUUID() } });
     if (text.startsWith('read ')) return turnFromParts([call('read_file', { path: text.slice(5).trim() })], usage);
-    if (text.startsWith('note ')) return turnFromParts([call('append_note', { text: text.slice(5).trim() })], usage);
+    if (text.startsWith('write ')) {
+      const [file = '', ...content] = text.slice(6).trim().split(' ');
+      return turnFromParts([call('write_file', { path: file, content: content.join(' ') })], usage);
+    }
     if (text.trim() === 'slow') {
       await sleep(SLOW_MS, signal);
       return turnFromParts([{ text: 'Slow answer.' }], usage);
