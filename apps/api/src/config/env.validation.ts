@@ -186,6 +186,27 @@ export class Env {
   @Min(1)
   AGENT_WRITE_MAX_BYTES = 200_000;
 
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_COMMAND_DEFAULT_TIMEOUT_SECONDS = 60;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_COMMAND_MAX_TIMEOUT_SECONDS = 300;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_COMMAND_OUTPUT_MAX_CHARS = 20_000;
+
+  /** Between the polite stop (SIGTERM) and the kill (SIGKILL) of a command's process group. */
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_COMMAND_KILL_GRACE_MS = 2000;
+
   /** Largest part of a file the project file viewer returns. */
   @Transform(toNumber)
   @IsInt()

@@ -71,6 +71,10 @@ type AppConfig = ConfigService<Env, true>;
           searchLineMaxChars: config.get('AGENT_SEARCH_LINE_MAX_CHARS', { infer: true }),
           searchTimeoutMs: config.get('AGENT_SEARCH_TIMEOUT_SECONDS', { infer: true }) * 1000,
           writeMaxBytes: config.get('AGENT_WRITE_MAX_BYTES', { infer: true }),
+          commandDefaultTimeoutMs: config.get('AGENT_COMMAND_DEFAULT_TIMEOUT_SECONDS', { infer: true }) * 1000,
+          commandMaxTimeoutMs: config.get('AGENT_COMMAND_MAX_TIMEOUT_SECONDS', { infer: true }) * 1000,
+          commandOutputMaxChars: config.get('AGENT_COMMAND_OUTPUT_MAX_CHARS', { infer: true }),
+          commandKillGraceMs: config.get('AGENT_COMMAND_KILL_GRACE_MS', { infer: true }),
           rgPath,
         };
         return (workspace: Workspace, session: ToolSession): AgentTool[] =>

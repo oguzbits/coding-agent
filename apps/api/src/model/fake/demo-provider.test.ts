@@ -30,6 +30,11 @@ describe('DemoProvider', () => {
     expect(write.toolCalls[0].id).toBeTruthy();
   });
 
+  it('turns "run <command>" into a run_command call', async () => {
+    const run = await provider.generate(request(said('run npm test')), signal);
+    expect(run.toolCalls).toMatchObject([{ name: 'run_command', args: { command: 'npm test' } }]);
+  });
+
   it('reports the tool result after a call', async () => {
     const history: HistoryEntry[] = [
       ...said('read a'),

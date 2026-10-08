@@ -261,6 +261,24 @@ describe('conversations and runs (HTTP, fake model)', () => {
       await waitForState(id, 'aborted');
     });
 
+    it('always asks before running a command, even in auto_edit mode, and runs it after approval', async () => {
+      const id = await createConversation(alice);
+      await call(alice, 'patch', `/conversations/${id}`).send({ mode: 'auto_edit' });
+      await send(alice, id, 'run echo hello-from-shell');
+      const requested = await waitForEvent(id, 'approval_requested');
+      expect(requested.payload).toMatchObject({
+        name: 'run_command',
+        preview: expect.stringContaining('$ echo hello'),
+      });
+      await call(alice, 'post', `/conversations/${id}/approvals`).send({
+        callId: String(requested.payload.callId),
+        approved: true,
+      });
+      await waitForState(id, 'finished');
+      const result = (await events(id)).find((event) => event.type === 'tool_result');
+      expect(result?.payload).toMatchObject({ isError: false, output: expect.stringContaining('hello-from-shell') });
+    });
+
     it('refuses changes in plan mode', async () => {
       const id = await createConversation(alice);
       await call(alice, 'patch', `/conversations/${id}`).send({ mode: 'plan' });

@@ -16,6 +16,10 @@ const limits: ToolLimits = {
   searchLineMaxChars: 40,
   searchTimeoutMs: 5000,
   writeMaxBytes: 200,
+  commandDefaultTimeoutMs: 5000,
+  commandMaxTimeoutMs: 10_000,
+  commandOutputMaxChars: 400,
+  commandKillGraceMs: 150,
   rgPath,
 };
 
@@ -42,9 +46,9 @@ describe('workspace tools', () => {
     await rm(root, { recursive: true, force: true });
   });
 
-  it('offers the five file tools with the right kinds', () => {
-    expect(Object.keys(tools)).toEqual(['read_file', 'list_files', 'search', 'edit_file', 'write_file']);
-    expect(Object.values(tools).map((tool) => tool.kind)).toEqual(['read', 'read', 'read', 'edit', 'edit']);
+  it('offers the six tools with the right kinds', () => {
+    expect(Object.keys(tools)).toEqual(['read_file', 'list_files', 'search', 'edit_file', 'write_file', 'run_command']);
+    expect(Object.values(tools).map((tool) => tool.kind)).toEqual(['read', 'read', 'read', 'edit', 'edit', 'command']);
   });
 
   describe('read_file', () => {
