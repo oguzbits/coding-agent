@@ -19,5 +19,5 @@ spikes/work/
 
 *.tsbuildinfo
 
-# Working directory of the agent (until projects exist)
-.agent-workspace/
+# Project folders of the agent
+.workspaces/

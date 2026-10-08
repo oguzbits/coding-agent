@@ -1,5 +1,3 @@
-import { mkdir } from 'node:fs/promises';
-import path from 'node:path';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,6 +6,7 @@ import { SYSTEM_PROMPT } from '../agent/system-prompt.js';
 import { createAppendNoteTool } from '../agent/tools/append-note.tool.js';
 import { createReadFileTool } from '../agent/tools/read-file.tool.js';
 import { Workspace } from '../agent/tools/workspace.js';
+import { ProjectsModule } from '../projects/projects.module.js';
 import type { AgentLimits, AgentTool } from '../agent/types.js';
 import type { Env } from '../config/env.validation.js';
 import { ModelModule } from '../model/model.module.js';
@@ -18,12 +17,19 @@ import { Message } from './message.entity.js';
 import { RunEventsService } from './run-events.service.js';
 import { Run } from './run.entity.js';
 import { RunEventRecord } from './run-event.entity.js';
-import { AGENT_LIMITS, AGENT_POLICY, AGENT_SYSTEM_PROMPT, AGENT_TOOLS, RunsService } from './runs.service.js';
+import {
+  AGENT_LIMITS,
+  AGENT_POLICY,
+  AGENT_SYSTEM_PROMPT,
+  CREATE_TOOLS,
+  RunsService,
+  type ToolFactory,
+} from './runs.service.js';
 
 type AppConfig = ConfigService<Env, true>;
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Conversation, Message, Run, RunEventRecord]), ModelModule],
+  imports: [TypeOrmModule.forFeature([Conversation, Message, Run, RunEventRecord]), ModelModule, ProjectsModule],
   controllers: [ConversationsController],
   providers: [
     ConversationsService,
@@ -42,15 +48,13 @@ type AppConfig = ConfigService<Env, true>;
       }),
     },
     {
-      provide: AGENT_TOOLS,
+      provide: CREATE_TOOLS,
       inject: [ConfigService],
-      useFactory: async (config: AppConfig): Promise<AgentTool[]> => {
-        const root = path.resolve(config.get('AGENT_WORKSPACE_DIR', { infer: true }));
-        await mkdir(root, { recursive: true });
-        const workspace = new Workspace(root);
-        return [
-          createReadFileTool(workspace, { maxBytes: config.get('AGENT_READ_MAX_BYTES', { infer: true }) }),
-          // Test tool that needs approval; goes away when the real tools arrive in slice 6a.
+      useFactory: (config: AppConfig): ToolFactory => {
+        const readMaxBytes = config.get('AGENT_READ_MAX_BYTES', { infer: true });
+        return (workspace: Workspace): AgentTool[] => [
+          createReadFileTool(workspace, { maxBytes: readMaxBytes }),
+          // Test tool that needs approval; goes away when the edit tools arrive.
           createAppendNoteTool(workspace),
         ];
       },

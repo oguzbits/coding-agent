@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Project } from '../projects/project.entity.js';
 import { User } from '../users/user.entity.js';
 
 @Entity('conversations')
@@ -20,6 +21,13 @@ export class Conversation {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user?: User;
+
+  @Column({ name: 'project_id', type: 'uuid' })
+  projectId!: string;
+
+  @ManyToOne(() => Project, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'project_id' })
+  project?: Project;
 
   @Column({ type: 'text' })
   title!: string;

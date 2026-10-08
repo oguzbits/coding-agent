@@ -14,18 +14,23 @@ import type { AgentLimits, AgentTool, RunEvent, RunSink, RunState, ToolPolicy } 
 import { requestContext } from '../logging/request-context.js';
 import type { HistoryEntry, ModelProvider } from '../model/model-provider.js';
 import { ModelGateway, type PreparedModel } from '../model/model.gateway.js';
+import { Workspace } from '../agent/tools/workspace.js';
+import { ProjectsService } from '../projects/projects.service.js';
 import { ApprovalRegistry } from './approval-registry.js';
+import type { Conversation } from './conversation.entity.js';
 import { ConversationsService } from './conversations.service.js';
 import { RunEventsService } from './run-events.service.js';
 import { Run } from './run.entity.js';
 
-export const AGENT_TOOLS = Symbol('AGENT_TOOLS');
+export const CREATE_TOOLS = Symbol('CREATE_TOOLS');
+export type ToolFactory = (workspace: Workspace) => AgentTool[];
 export const AGENT_POLICY = Symbol('AGENT_POLICY');
 export const AGENT_LIMITS = Symbol('AGENT_LIMITS');
 export const AGENT_SYSTEM_PROMPT = Symbol('AGENT_SYSTEM_PROMPT');
 
 interface ActiveRun {
   runId: string;
+  projectId: string;
   conversationId: string;
   controller: AbortController;
   approvals: ApprovalRegistry;
@@ -45,13 +50,15 @@ export class RunsService implements OnApplicationBootstrap {
     private readonly conversations: ConversationsService,
     private readonly events: RunEventsService,
     private readonly gateway: ModelGateway,
-    @Inject(AGENT_TOOLS) private readonly tools: AgentTool[],
+    @Inject(CREATE_TOOLS) private readonly createTools: ToolFactory,
+    private readonly projects: ProjectsService,
     @Inject(AGENT_POLICY) private readonly policy: ToolPolicy,
     @Inject(AGENT_LIMITS) private readonly limits: AgentLimits,
     @Inject(AGENT_SYSTEM_PROMPT) private readonly systemPrompt: string,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
+    this.projects.onBeforeRemove((userId, projectId) => this.stopProject(userId, projectId));
     await this.abortLeftoverRuns();
   }
 
@@ -78,6 +85,7 @@ export class RunsService implements OnApplicationBootstrap {
     let finish!: () => void;
     const active: ActiveRun = {
       runId: '',
+      projectId: conversation.projectId,
       conversationId,
       controller,
       approvals,
@@ -91,7 +99,7 @@ export class RunsService implements OnApplicationBootstrap {
         .save({ conversationId, state: 'running', pendingApproval: null });
       active.runId = run.id;
       await this.events.append(conversationId, run.id, { type: 'run_started' });
-      void this.execute(userId, conversation.id, active, history, prepared).finally(() => {
+      void this.execute(userId, conversation, active, history, prepared).finally(() => {
         this.active.delete(userId);
         finish();
       });
@@ -119,6 +127,14 @@ export class RunsService implements OnApplicationBootstrap {
     await active.done;
   }
 
+  /** Stops the user's run if it works in this project. Used before a project is deleted. */
+  async stopProject(userId: string, projectId: string): Promise<void> {
+    const active = this.active.get(userId);
+    if (active?.projectId !== projectId) return;
+    active.controller.abort();
+    await active.done;
+  }
+
   private async prepareHistory(conversationId: string, text: string, format: ModelProvider): Promise<HistoryEntry[]> {
     const stored = await this.conversations.loadHistory(conversationId);
     const repaired = repairHistory(stored, format);
@@ -131,12 +147,14 @@ export class RunsService implements OnApplicationBootstrap {
 
   private async execute(
     userId: string,
-    conversationId: string,
+    conversation: Conversation,
     active: ActiveRun,
     history: HistoryEntry[],
     prepared: PreparedModel,
   ): Promise<void> {
     const { runId } = active;
+    const conversationId = conversation.id;
+    const workspace = new Workspace(this.projects.directoryOf(userId, conversation.projectId));
     const runs = this.dataSource.getRepository(Run);
     let failureCode: string | undefined;
     let pending: Run['pendingApproval'] = null;
@@ -172,7 +190,7 @@ export class RunsService implements OnApplicationBootstrap {
         runAgent(
           {
             provider: prepared.forRun(runId),
-            tools: this.tools,
+            tools: this.createTools(workspace),
             policy: this.policy,
             approvals: active.approvals,
             sink,

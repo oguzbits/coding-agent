@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import type { HistoryEntry, ProviderPart } from '../model/model-provider.js';
+import { ProjectsService } from '../projects/projects.service.js';
 import { Conversation } from './conversation.entity.js';
 import { Message } from './message.entity.js';
 import { Run } from './run.entity.js';
@@ -23,14 +24,19 @@ export class ConversationsService {
   constructor(
     @InjectRepository(Conversation) private readonly conversations: Repository<Conversation>,
     @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly projects: ProjectsService,
   ) {}
 
-  create(userId: string, title?: string): Promise<Conversation> {
-    return this.conversations.save(this.conversations.create({ userId, title: title ?? DEFAULT_TITLE }));
+  async create(userId: string, projectId: string, title?: string): Promise<Conversation> {
+    await this.projects.getOwned(userId, projectId);
+    return this.conversations.save(this.conversations.create({ userId, projectId, title: title ?? DEFAULT_TITLE }));
   }
 
-  list(userId: string): Promise<Conversation[]> {
-    return this.conversations.find({ where: { userId }, order: { updatedAt: 'DESC' } });
+  list(userId: string, projectId?: string): Promise<Conversation[]> {
+    return this.conversations.find({
+      where: { userId, ...(projectId ? { projectId } : {}) },
+      order: { updatedAt: 'DESC' },
+    });
   }
 
   /** Throws NotFound for a conversation that does not exist and for one that belongs to somebody else. */

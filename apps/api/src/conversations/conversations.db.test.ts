@@ -13,10 +13,10 @@ import { resetTestDatabase } from '../testing/test-database.js';
 import { RunsService } from './runs.service.js';
 
 const password = 'correct horse battery staple';
-const workspaceEnv = process.env.AGENT_WORKSPACE_DIR ?? '';
+const workspaceEnv = process.env.WORKSPACES_DIR ?? '';
 // The tests delete this directory, so refuse to run against anything that is not clearly a test directory.
-if (!workspaceEnv.includes('coding-agent-test')) throw new Error('AGENT_WORKSPACE_DIR must be a coding-agent-test dir');
-const workspaceDir = path.resolve(workspaceEnv);
+if (!workspaceEnv.includes('coding-agent-test')) throw new Error('WORKSPACES_DIR must be a coding-agent-test dir');
+const workspacesRoot = path.resolve(workspaceEnv);
 
 type Agent = ReturnType<typeof request.agent>;
 type StoredEvent = { seq: number; type: string; payload: Record<string, unknown> };
@@ -37,8 +37,19 @@ describe('conversations and runs (HTTP, fake model)', () => {
     const response = await call(agent, 'post', '/auth/login').send({ email, password });
     return { agent, cookie: String(response.headers['set-cookie']?.[0] ?? '').split(';')[0] };
   }
-  const createConversation = async (agent: Agent, title?: string): Promise<string> =>
-    (await call(agent, 'post', '/conversations').send(title ? { title } : {})).body.id;
+  const createConversation = async (agent: Agent, title?: string): Promise<string> => {
+    const project = await call(agent, 'post', '/projects').send({ name: 'Test project' });
+    const created = await call(agent, 'post', '/conversations').send({
+      projectId: project.body.id,
+      ...(title ? { title } : {}),
+    });
+    return created.body.id;
+  };
+  /** The folder the agent works in for this conversation. */
+  const workspaceOf = async (id: string): Promise<string> => {
+    const [row] = await dataSource.query('SELECT user_id, project_id FROM conversations WHERE id = $1', [id]);
+    return path.join(workspacesRoot, row.user_id, row.project_id);
+  };
   const send = (agent: Agent, id: string, text: string) =>
     call(agent, 'post', `/conversations/${id}/messages`).send({ text });
   const events = async (id: string): Promise<StoredEvent[]> =>
@@ -71,11 +82,22 @@ describe('conversations and runs (HTTP, fake model)', () => {
   afterAll(async () => {
     await app.close();
   });
+  // A run started by a test may still be writing; the next test's TRUNCATE would deadlock with it.
+  afterEach(async () => {
+    for (let attempt = 0; attempt < 200; attempt += 1) {
+      const [{ n }] = await dataSource.query(
+        `SELECT count(*)::int AS n FROM runs WHERE state IN ('running', 'awaiting_approval')`,
+      );
+      if (n === 0) return;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+  });
+
   beforeEach(async () => {
     await dataSource.query('TRUNCATE users CASCADE');
     await dataSource.query('TRUNCATE auth_sessions');
-    await rm(workspaceDir, { recursive: true, force: true });
-    await mkdir(workspaceDir, { recursive: true });
+    await rm(workspacesRoot, { recursive: true, force: true });
+    await mkdir(workspacesRoot, { recursive: true });
     const first = await login('alice@example.com');
     alice = first.agent;
     aliceCookie = first.cookie;
@@ -156,8 +178,8 @@ describe('conversations and runs (HTTP, fake model)', () => {
     });
 
     it('runs a read tool inside the workspace and returns the file to the model', async () => {
-      await writeFile(path.join(workspaceDir, 'hello.txt'), 'file content');
       const id = await createConversation(alice);
+      await writeFile(path.join(await workspaceOf(id), 'hello.txt'), 'file content');
       await send(alice, id, 'read hello.txt');
       await waitForState(id, 'finished');
       const stored = await events(id);
@@ -172,8 +194,8 @@ describe('conversations and runs (HTTP, fake model)', () => {
     });
 
     it('gives the model an error instead of a protected file', async () => {
-      await writeFile(path.join(workspaceDir, '.env'), 'SECRET=hunter2');
       const id = await createConversation(alice);
+      await writeFile(path.join(await workspaceOf(id), '.env'), 'SECRET=hunter2');
       await send(alice, id, 'read .env');
       await waitForState(id, 'finished');
       const result = (await events(id)).find((event) => event.type === 'tool_result');
@@ -197,7 +219,7 @@ describe('conversations and runs (HTTP, fake model)', () => {
       const answer = await call(alice, 'post', `/conversations/${id}/approvals`).send({ callId, approved: true });
       expect(answer.status).toBe(204);
       await waitForState(id, 'finished');
-      expect(await readFile(path.join(workspaceDir, 'NOTES.md'), 'utf8')).toBe('buy milk\n');
+      expect(await readFile(path.join(await workspaceOf(id), 'NOTES.md'), 'utf8')).toBe('buy milk\n');
     });
 
     it('does not run a declined action', async () => {
@@ -209,7 +231,7 @@ describe('conversations and runs (HTTP, fake model)', () => {
         approved: false,
       });
       await waitForState(id, 'finished');
-      await expect(readFile(path.join(workspaceDir, 'NOTES.md'), 'utf8')).rejects.toThrow();
+      await expect(readFile(path.join(await workspaceOf(id), 'NOTES.md'), 'utf8')).rejects.toThrow();
     });
 
     it('answers an approval for an unknown call with 404', async () => {

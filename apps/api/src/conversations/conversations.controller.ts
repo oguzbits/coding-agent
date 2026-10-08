@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Res,
 } from '@nestjs/common';
 import { ApiAcceptedResponse, ApiOkResponse, ApiProduces } from '@nestjs/swagger';
@@ -31,6 +32,7 @@ import { RunsService } from './runs.service.js';
 
 const view = (conversation: Conversation, activeRun?: ConversationDto['activeRun']): ConversationDto => ({
   id: conversation.id,
+  projectId: conversation.projectId,
   title: conversation.title,
   mode: conversation.mode,
   createdAt: conversation.createdAt,
@@ -50,13 +52,16 @@ export class ConversationsController {
   @Post()
   @ApiOkResponse({ type: ConversationDto })
   async create(@CurrentUser() user: Express.User, @Body() dto: CreateConversationDto): Promise<ConversationDto> {
-    return view(await this.conversations.create(user.id, dto.title));
+    return view(await this.conversations.create(user.id, dto.projectId, dto.title));
   }
 
   @Get()
   @ApiOkResponse({ type: [ConversationDto] })
-  async list(@CurrentUser() user: Express.User): Promise<ConversationDto[]> {
-    return (await this.conversations.list(user.id)).map((conversation) => view(conversation));
+  async list(
+    @CurrentUser() user: Express.User,
+    @Query('projectId', new ParseUUIDPipe({ optional: true })) projectId?: string,
+  ): Promise<ConversationDto[]> {
+    return (await this.conversations.list(user.id, projectId)).map((conversation) => view(conversation));
   }
 
   @Get(':id')

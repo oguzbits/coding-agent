@@ -119,10 +119,10 @@ export class Env {
   @Min(1)
   GEMINI_DEFAULT_REQUESTS_PER_DAY = 500;
 
-  /** The directory the agent works in until projects exist. Created at startup if missing. */
+  /** Projects live in <WORKSPACES_DIR>/<user id>/<project id>. Created at startup if missing. */
   @IsString()
   @IsNotEmpty()
-  AGENT_WORKSPACE_DIR = '.agent-workspace';
+  WORKSPACES_DIR = '.workspaces';
 
   @Transform(toNumber)
   @IsInt()

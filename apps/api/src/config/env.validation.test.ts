@@ -83,7 +83,7 @@ describe('validateEnv', () => {
     expect(env.AGENT_TOOL_OUTPUT_MAX_CHARS).toBeGreaterThan(0);
     expect(env.AGENT_READ_MAX_BYTES).toBeGreaterThan(0);
     expect(env.SSE_HEARTBEAT_SECONDS).toBe(15);
-    expect(env.AGENT_WORKSPACE_DIR).toBeTruthy();
+    expect(env.WORKSPACES_DIR).toBeTruthy();
   });
 
   it('rejects an unknown provider and non-positive limits', () => {

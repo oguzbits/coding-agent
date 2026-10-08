@@ -1,10 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 
 export class CreateConversationDto {
+  @IsUUID()
+  projectId!: string;
+
   @IsOptional()
   @Transform(trim)
   @IsString()
@@ -46,6 +49,7 @@ export class ActiveRunDto {
 
 export class ConversationDto {
   id!: string;
+  projectId!: string;
   title!: string;
   mode!: string;
   createdAt!: Date;

@@ -30,7 +30,7 @@ export default defineConfig({
             MASTER_KEY: Buffer.alloc(32, 7).toString('base64'),
             REGISTRATION_OPEN: 'true',
             THROTTLE_AUTH_PER_MINUTE: '1000',
-            AGENT_WORKSPACE_DIR: path.join(os.tmpdir(), 'coding-agent-test-workspace'),
+            WORKSPACES_DIR: path.join(os.tmpdir(), 'coding-agent-test-workspace'),
           },
           fileParallelism: false,
         },
