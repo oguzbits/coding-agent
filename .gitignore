@@ -1,0 +1,11 @@
+# Secrets
+.env*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+
+# macOS
+.DS_Store
