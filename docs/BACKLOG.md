@@ -5,11 +5,13 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 ## Done
 
 - Slice 1: spike with Flash-Lite, see [SPIKE-ERGEBNISSE.md](SPIKE-ERGEBNISSE.md)
+- Slice 2: NestJS scaffold (config, Postgres, migrations proven in ESM, logs with request ids, host/origin check, checks, hooks)
+- Slice 3: accounts (register, login, logout, change password, profile with encrypted Gemini key)
 - Slice 0: name, `.nvmrc`, `.gitignore`, README, AGENTS.md/CLAUDE.md, hooks for Claude Code
 
 ## Next
 
-- Slice 2: NestJS scaffold (ESM migration and DB test first)
+- Slice 4: agent loop with fake provider and SSE
 
 ## Open
 
@@ -20,6 +22,9 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 - Several tool calls in one response; thought tokens against the minute limit
 - Harder tasks than the spike (larger repos, unclear failures)
 - Whether the Gemini key shares a Google project with other keys (shared 500 requests per day)
+
+- Profile: model name and limits as HTTP endpoints (service method `setModelName` exists) arrive with the Gemini adapter (slice 5)
+- Registration answers 202 for taken emails too; the confirmation mail (slice 8) makes that usable
 
 ## Later
 

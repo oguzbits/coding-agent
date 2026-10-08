@@ -1,6 +1,7 @@
+import { testEnv } from '../testing/test-env.js';
 import { validateEnv } from './env.validation.js';
 
-const valid = { DATABASE_URL: 'postgres://u:p@localhost:5432/db' };
+const valid = testEnv();
 
 describe('validateEnv', () => {
   it('applies defaults for optional values', () => {
@@ -38,5 +39,39 @@ describe('validateEnv', () => {
     const attempt = () => validateEnv({ DATABASE_URL: 'not-a-url-with-secret-pw' });
     expect(attempt).toThrow(/DATABASE_URL/);
     expect(attempt).not.toThrow(/secret-pw/);
+  });
+
+  it('defaults the account settings: registration closed, key version 1, bounded session lifetime', () => {
+    const env = validateEnv(valid);
+    expect(env.REGISTRATION_OPEN).toBe(false);
+    expect(env.MASTER_KEY_VERSION).toBe(1);
+    expect(env.SESSION_IDLE_MINUTES).toBe(480);
+    expect(env.SESSION_MAX_HOURS).toBe(168);
+  });
+
+  it('reads REGISTRATION_OPEN=true as a boolean and treats anything else as an error', () => {
+    expect(validateEnv({ ...valid, REGISTRATION_OPEN: 'true' }).REGISTRATION_OPEN).toBe(true);
+    expect(validateEnv({ ...valid, REGISTRATION_OPEN: 'false' }).REGISTRATION_OPEN).toBe(false);
+    expect(() => validateEnv({ ...valid, REGISTRATION_OPEN: 'yes' })).toThrow(/REGISTRATION_OPEN/);
+  });
+
+  it('requires a session secret of at least 32 characters', () => {
+    expect(() => validateEnv({ ...valid, SESSION_SECRET: 'short' })).toThrow(/SESSION_SECRET/);
+    expect(() => validateEnv({ DATABASE_URL: valid.DATABASE_URL, MASTER_KEY: valid.MASTER_KEY })).toThrow(
+      /SESSION_SECRET/,
+    );
+  });
+
+  it('requires the master key as base64 of exactly 32 bytes', () => {
+    expect(() => validateEnv({ ...valid, MASTER_KEY: Buffer.alloc(16).toString('base64') })).toThrow(/MASTER_KEY/);
+    expect(() => validateEnv({ ...valid, MASTER_KEY: 'not base64!!' })).toThrow(/MASTER_KEY/);
+  });
+
+  it('defaults the throttling limits and accepts overrides', () => {
+    const env = validateEnv(valid);
+    expect(env.THROTTLE_DEFAULT_PER_MINUTE).toBe(300);
+    expect(env.THROTTLE_AUTH_PER_MINUTE).toBe(10);
+    expect(validateEnv({ ...valid, THROTTLE_AUTH_PER_MINUTE: '1000' }).THROTTLE_AUTH_PER_MINUTE).toBe(1000);
+    expect(() => validateEnv({ ...valid, THROTTLE_AUTH_PER_MINUTE: '0' })).toThrow(/THROTTLE_AUTH_PER_MINUTE/);
   });
 });

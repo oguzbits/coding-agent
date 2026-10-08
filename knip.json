@@ -2,8 +2,8 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
     ".": {
-      "entry": [".claude/hooks/*.mjs"],
-      "project": [".claude/hooks/*.mjs"]
+      "entry": [".claude/hooks/*.mjs", "scripts/*.mjs"],
+      "project": [".claude/hooks/*.mjs", "scripts/*.mjs"]
     },
     "apps/api": {
       "entry": ["src/main.ts", "src/database/data-source.ts", "src/database/migrations/*.ts"],

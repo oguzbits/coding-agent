@@ -18,11 +18,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "npm run format:check && npm run typecheck && npm run lint && npm run deps && npm run dead-code",
-    "test": "npm test --workspaces --if-present && node --test \".claude/hooks/*.test.mjs\"",
+    "test": "npm test --workspaces --if-present && node --test \".claude/hooks/*.test.mjs\" \"scripts/*.test.mjs\"",
     "test:db": "npm run test:db --workspaces --if-present",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
-    "prepare": "husky"
+    "prepare": "husky",
+    "env:init": "node scripts/init-env.mjs"
   },
   "devDependencies": {
     "dependency-cruiser": "^18.5.0",

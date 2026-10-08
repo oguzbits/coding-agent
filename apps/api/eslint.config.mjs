@@ -19,7 +19,7 @@ export default tseslint.config(
       'no-restricted-syntax': [
         'error',
         { selector: doubleAssertion, message: 'No double type assertion (as unknown as X): fix the types instead.' },
-        { selector: 'Literal[value=/^(gemini|models\\/gemini)-/]', message: 'Model IDs belong in src/config only.' },
+        { selector: 'Literal[value=/^(models\\/)?gemini-[0-9]/]', message: 'Model IDs belong in src/config only.' },
       ],
     },
   },

@@ -5,6 +5,7 @@ import { IsString, MinLength } from 'class-validator';
 import request from 'supertest';
 import { configureApp } from './app.setup.js';
 import { validateEnv } from './config/env.validation.js';
+import { testEnv } from './testing/test-env.js';
 
 class EchoDto {
   @ApiProperty()
@@ -31,7 +32,7 @@ class TestModule {}
 
 describe('configureApp', () => {
   let app: INestApplication;
-  const env = validateEnv({ DATABASE_URL: 'postgres://u:p@localhost:5432/db', PORT: '3000', LOG_LEVEL: 'error' });
+  const env = validateEnv(testEnv({ PORT: '3000', LOG_LEVEL: 'error' }));
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [TestModule] }).compile();

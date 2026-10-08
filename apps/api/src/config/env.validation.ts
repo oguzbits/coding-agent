@@ -1,14 +1,33 @@
 import { plainToInstance, Transform } from 'class-transformer';
-import { IsArray, IsIn, IsInt, IsNotEmpty, IsString, IsUrl, Max, Min, validateSync } from 'class-validator';
+import {
+  IsArray,
+  IsBase64,
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Length,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+  validateSync,
+} from 'class-validator';
 
 const NODE_ENVS = ['development', 'test', 'production'] as const;
+const toBoolean = ({ value }: { value: unknown }) => (value === 'true' ? true : value === 'false' ? false : value);
+const toNumber = ({ value }: { value: unknown }) => (value === undefined ? undefined : Number(value));
+
 const LOG_LEVELS = ['error', 'warn', 'log', 'debug', 'verbose'] as const;
 
 export class Env {
   @IsIn(NODE_ENVS)
   NODE_ENV: (typeof NODE_ENVS)[number] = 'development';
 
-  @Transform(({ value }) => (value === undefined ? undefined : Number(value)))
+  @Transform(toNumber)
   @IsInt()
   @Min(1)
   @Max(65535)
@@ -25,6 +44,51 @@ export class Env {
     require_tld: false,
   })
   DATABASE_URL!: string;
+
+  @IsString()
+  @MinLength(32)
+  @MaxLength(512)
+  SESSION_SECRET!: string;
+
+  /** Base64 of the 32-byte AES key that encrypts the users' Gemini keys. */
+  @IsBase64()
+  @Length(44, 44)
+  MASTER_KEY!: string;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  MASTER_KEY_VERSION = 1;
+
+  @Transform(toBoolean)
+  @IsBoolean()
+  REGISTRATION_OPEN = false;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  SESSION_IDLE_MINUTES = 480;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  SESSION_MAX_HOURS = 168;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  THROTTLE_DEFAULT_PER_MINUTE = 300;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  THROTTLE_AUTH_PER_MINUTE = 10;
+
+  /** Defaults to true in production and false elsewhere. */
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  COOKIE_SECURE?: boolean;
 
   @IsIn(LOG_LEVELS)
   LOG_LEVEL: (typeof LOG_LEVELS)[number] = 'log';
