@@ -11,11 +11,28 @@ export class RegistrationClosedError extends Error {}
 
 export const REGISTRATION_OPEN = Symbol('REGISTRATION_OPEN');
 
+export interface ModelSettings {
+  modelName: string | null;
+  requestsPerMinute: number | null;
+  tokensPerMinute: number | null;
+  requestsPerDay: number | null;
+}
+
 export interface SettingsView {
   hasGeminiKey: boolean;
   geminiKeyLast4: string | null;
   modelName: string | null;
+  limits: Omit<ModelSettings, 'modelName'>;
 }
+
+const NO_SETTINGS = {
+  geminiKeyCiphertext: null,
+  geminiKeyLast4: null,
+  modelName: null,
+  requestsPerMinute: null,
+  tokensPerMinute: null,
+  requestsPerDay: null,
+};
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
@@ -68,11 +85,16 @@ export class UsersService {
   }
 
   async getSettings(userId: string): Promise<SettingsView> {
-    const row = await this.settings.findOneBy({ userId });
+    const row = (await this.settings.findOneBy({ userId })) ?? NO_SETTINGS;
     return {
-      hasGeminiKey: row?.geminiKeyCiphertext != null,
-      geminiKeyLast4: row?.geminiKeyLast4 ?? null,
-      modelName: row?.modelName ?? null,
+      hasGeminiKey: row.geminiKeyCiphertext != null,
+      geminiKeyLast4: row.geminiKeyLast4,
+      modelName: row.modelName,
+      limits: {
+        requestsPerMinute: row.requestsPerMinute,
+        tokensPerMinute: row.tokensPerMinute,
+        requestsPerDay: row.requestsPerDay,
+      },
     };
   }
 
@@ -119,8 +141,10 @@ export class UsersService {
     );
   }
 
-  async setModelName(userId: string, modelName: string | null): Promise<void> {
-    await this.settings.upsert({ userId, modelName }, ['userId']);
+  /** Fields left out stay as they are; null resets a field to the default from the config. */
+  async setModelSettings(userId: string, changes: Partial<ModelSettings>): Promise<void> {
+    const defined = Object.fromEntries(Object.entries(changes).filter(([, value]) => value !== undefined));
+    await this.settings.upsert({ userId, ...defined }, ['userId']);
   }
 }
 

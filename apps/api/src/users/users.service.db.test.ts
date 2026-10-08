@@ -63,6 +63,7 @@ describe('UsersService (registration open)', () => {
       hasGeminiKey: false,
       geminiKeyLast4: null,
       modelName: null,
+      limits: { requestsPerMinute: null, tokensPerMinute: null, requestsPerDay: null },
     });
 
     await ctx.users.setGeminiKey(user.id, 'AIzaSyExampleKey-1234');
@@ -70,6 +71,7 @@ describe('UsersService (registration open)', () => {
       hasGeminiKey: true,
       geminiKeyLast4: '1234',
       modelName: null,
+      limits: { requestsPerMinute: null, tokensPerMinute: null, requestsPerDay: null },
     });
     expect(await ctx.users.getGeminiKey(user.id)).toBe('AIzaSyExampleKey-1234');
 
@@ -81,13 +83,33 @@ describe('UsersService (registration open)', () => {
   it('removes the key and keeps the model name', async () => {
     const user = await ctx.users.register('alice@example.com', password);
     await ctx.users.setGeminiKey(user.id, 'AIzaSyExampleKey-1234');
-    await ctx.users.setModelName(user.id, 'gemini-custom');
+    await ctx.users.setModelSettings(user.id, { modelName: 'gemini-custom' });
     await ctx.users.clearGeminiKey(user.id);
     expect(await ctx.users.getGeminiKey(user.id)).toBeNull();
     expect(await ctx.users.getSettings(user.id)).toEqual({
       hasGeminiKey: false,
       geminiKeyLast4: null,
       modelName: 'gemini-custom',
+      limits: { requestsPerMinute: null, tokensPerMinute: null, requestsPerDay: null },
+    });
+  });
+
+  it('stores model name and limits, and clears single values with null', async () => {
+    const user = await ctx.users.register('alice@example.com', password);
+    await ctx.users.setModelSettings(user.id, {
+      modelName: 'custom-model',
+      requestsPerMinute: 10,
+      requestsPerDay: 100,
+    });
+    expect((await ctx.users.getSettings(user.id)).limits).toEqual({
+      requestsPerMinute: 10,
+      tokensPerMinute: null,
+      requestsPerDay: 100,
+    });
+    await ctx.users.setModelSettings(user.id, { requestsPerMinute: null, tokensPerMinute: 5000 });
+    expect(await ctx.users.getSettings(user.id)).toMatchObject({
+      modelName: 'custom-model',
+      limits: { requestsPerMinute: null, tokensPerMinute: 5000, requestsPerDay: 100 },
     });
   });
 

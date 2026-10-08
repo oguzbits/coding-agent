@@ -21,7 +21,7 @@ const NODE_ENVS = ['development', 'test', 'production'] as const;
 const toBoolean = ({ value }: { value: unknown }) => (value === 'true' ? true : value === 'false' ? false : value);
 const toNumber = ({ value }: { value: unknown }) => (value === undefined ? undefined : Number(value));
 
-const MODEL_PROVIDERS = ['fake'] as const;
+const MODEL_PROVIDERS = ['fake', 'gemini'] as const;
 const LOG_LEVELS = ['error', 'warn', 'log', 'debug', 'verbose'] as const;
 
 export class Env {
@@ -94,9 +94,30 @@ export class Env {
   @IsIn(LOG_LEVELS)
   LOG_LEVEL: (typeof LOG_LEVELS)[number] = 'log';
 
-  /** Which model backs the agent. `fake` answers from a fixed script and needs no key. */
+  /** Which model backs the agent. `fake` answers from simple commands and needs no key. */
   @IsIn(MODEL_PROVIDERS)
   MODEL_PROVIDER: (typeof MODEL_PROVIDERS)[number] = 'fake';
+
+  /** Used until the user sets a model in the profile. Model IDs live here and nowhere else in the code. */
+  @IsString()
+  @IsNotEmpty()
+  GEMINI_DEFAULT_MODEL = 'gemini-3.5-flash-lite';
+
+  /** Free-tier limits of that model (Google AI Studio dashboard, 2026-10-09); users can override them in the profile. */
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  GEMINI_DEFAULT_REQUESTS_PER_MINUTE = 15;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  GEMINI_DEFAULT_TOKENS_PER_MINUTE = 250_000;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  GEMINI_DEFAULT_REQUESTS_PER_DAY = 500;
 
   /** The directory the agent works in until projects exist. Created at startup if missing. */
   @IsString()

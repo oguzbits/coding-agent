@@ -1,14 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { extractToolCalls, responseCallId, toolResultParts, turnFromParts, userTextParts } from '../gemini/parts.js';
-import type {
-  HistoryEntry,
-  ModelProvider,
-  ModelRequest,
-  ModelTurn,
-  ProviderPart,
-  ToolResultForModel,
-} from '../model-provider.js';
-import { sleep } from './fake-provider.js';
+import { GeminiPartFormat, turnFromParts } from '../gemini/parts.js';
+import type { HistoryEntry, ModelRequest, ModelTurn, ProviderPart } from '../model-provider.js';
+import { sleep } from '../abortable-sleep.js';
 
 const SLOW_MS = 10_000;
 
@@ -31,7 +24,7 @@ const lastToolResult = (history: HistoryEntry[]): string | undefined => {
  * Answers from simple commands in the user's message, so the whole app can run without a model:
  * `read <path>`, `note <text>`, `slow` (waits, abortable), anything else is echoed.
  */
-export class DemoProvider implements ModelProvider {
+export class DemoProvider extends GeminiPartFormat {
   async generate(request: ModelRequest, signal: AbortSignal): Promise<ModelTurn> {
     const usage = { promptTokens: request.history.length * 10, outputTokens: 5 };
     const result = lastToolResult(request.history);
@@ -46,21 +39,5 @@ export class DemoProvider implements ModelProvider {
       return turnFromParts([{ text: 'Slow answer.' }], usage);
     }
     return turnFromParts([{ text: `You said: ${text}` }], usage);
-  }
-
-  userMessageParts(text: string): ProviderPart[] {
-    return userTextParts(text);
-  }
-
-  toolCallsIn(parts: ProviderPart[]) {
-    return extractToolCalls(parts);
-  }
-
-  responseCallId(part: ProviderPart) {
-    return responseCallId(part);
-  }
-
-  toolResultParts(results: ToolResultForModel[]): ProviderPart[] {
-    return toolResultParts(results);
   }
 }

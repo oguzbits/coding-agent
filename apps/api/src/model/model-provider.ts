@@ -53,6 +53,8 @@ export class ModelError extends Error {
   constructor(
     readonly kind: ModelErrorKind,
     message: string,
+    /** How long the vendor asked us to wait, when it said so. */
+    readonly retryAfterMs?: number,
   ) {
     super(message);
   }

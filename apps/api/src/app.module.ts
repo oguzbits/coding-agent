@@ -3,6 +3,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { ConversationsModule } from './conversations/conversations.module.js';
 import { AppConfigModule } from './config/app-config.module.js';
 import { DatabaseModule } from './database/database.module.js';
+import { ModelModule } from './model/model.module.js';
 
-@Module({ imports: [AppConfigModule, DatabaseModule, AuthModule, ConversationsModule] })
+@Module({ imports: [AppConfigModule, DatabaseModule, AuthModule, ConversationsModule, ModelModule] })
 export class AppModule {}

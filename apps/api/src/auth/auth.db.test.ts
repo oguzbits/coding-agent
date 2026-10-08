@@ -138,6 +138,7 @@ describe('accounts and login (HTTP)', () => {
       hasGeminiKey: false,
       geminiKeyLast4: null,
       modelName: null,
+      limits: { requestsPerMinute: null, tokensPerMinute: null, requestsPerDay: null },
     });
     const put = await a
       .put('/api/users/me/gemini-key')
@@ -145,10 +146,30 @@ describe('accounts and login (HTTP)', () => {
       .send({ apiKey: 'AIzaSyExampleKey-1234' });
     expect(put.status).toBe(204);
     const settings = await get(a, '/api/users/me/settings');
-    expect(settings.body).toEqual({ hasGeminiKey: true, geminiKeyLast4: '1234', modelName: null });
+    expect(settings.body).toMatchObject({ hasGeminiKey: true, geminiKeyLast4: '1234', modelName: null });
     expect(JSON.stringify(settings.body)).not.toContain('AIzaSy');
     expect((await a.delete('/api/users/me/gemini-key').set('Host', 'localhost:3000')).status).toBe(204);
     expect((await get(a, '/api/users/me/settings')).body.hasGeminiKey).toBe(false);
+  });
+
+  it('sets the model name and limits and validates them', async () => {
+    const { a } = await registerAndLogin();
+    const put = (body: object) => a.put('/api/users/me/model').set('Host', 'localhost:3000').send(body);
+    expect((await put({ modelName: 'my-model', requestsPerMinute: 12, requestsPerDay: 300 })).status).toBe(204);
+    expect((await get(a, '/api/users/me/settings')).body).toMatchObject({
+      modelName: 'my-model',
+      limits: { requestsPerMinute: 12, tokensPerMinute: null, requestsPerDay: 300 },
+    });
+    expect((await put({ modelName: null, requestsPerMinute: null })).status).toBe(204);
+    expect((await get(a, '/api/users/me/settings')).body).toMatchObject({
+      modelName: null,
+      limits: { requestsPerMinute: null, requestsPerDay: 300 },
+    });
+    expect((await put({ modelName: 'has space' })).status).toBe(400);
+    expect((await put({ requestsPerMinute: 0 })).status).toBe(400);
+    expect((await put({ requestsPerMinute: 1.5 })).status).toBe(400);
+    expect((await put({ requestsPerDay: 'many' })).status).toBe(400);
+    expect((await put({ unknown: 1 })).status).toBe(400);
   });
 
   it('rejects keys with whitespace or absurd length', async () => {

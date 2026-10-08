@@ -28,6 +28,16 @@ export class UserSettings {
   @Column({ name: 'model_name', type: 'text', nullable: true })
   modelName!: string | null;
 
+  /** Limits from the user's Google AI Studio dashboard; null means the default from the config. */
+  @Column({ name: 'requests_per_minute', type: 'int', nullable: true })
+  requestsPerMinute!: number | null;
+
+  @Column({ name: 'tokens_per_minute', type: 'int', nullable: true })
+  tokensPerMinute!: number | null;
+
+  @Column({ name: 'requests_per_day', type: 'int', nullable: true })
+  requestsPerDay!: number | null;
+
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 }

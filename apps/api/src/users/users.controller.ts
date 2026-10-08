@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, Put } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/current-user.decorator.js';
-import { SetGeminiKeyDto, SettingsDto } from './users.dto.js';
+import { SetGeminiKeyDto, SetModelSettingsDto, SettingsDto } from './users.dto.js';
 import { UsersService } from './users.service.js';
 
 @Controller('users/me')
@@ -18,6 +18,12 @@ export class UsersController {
   @HttpCode(204)
   async setGeminiKey(@CurrentUser() user: Express.User, @Body() dto: SetGeminiKeyDto): Promise<void> {
     await this.users.setGeminiKey(user.id, dto.apiKey);
+  }
+
+  @Put('model')
+  @HttpCode(204)
+  async setModel(@CurrentUser() user: Express.User, @Body() dto: SetModelSettingsDto): Promise<void> {
+    await this.users.setModelSettings(user.id, dto);
   }
 
   @Delete('gemini-key')

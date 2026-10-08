@@ -13,17 +13,15 @@ import { runAgent } from '../agent/agent-loop.js';
 import type { AgentLimits, AgentTool, RunEvent, RunSink, RunState, ToolPolicy } from '../agent/types.js';
 import { requestContext } from '../logging/request-context.js';
 import type { HistoryEntry, ModelProvider } from '../model/model-provider.js';
-import { UsersService } from '../users/users.service.js';
+import { ModelGateway, type PreparedModel } from '../model/model.gateway.js';
 import { ApprovalRegistry } from './approval-registry.js';
 import { ConversationsService } from './conversations.service.js';
 import { RunEventsService } from './run-events.service.js';
 import { Run } from './run.entity.js';
 
-export const MODEL_PROVIDER = Symbol('MODEL_PROVIDER');
 export const AGENT_TOOLS = Symbol('AGENT_TOOLS');
 export const AGENT_POLICY = Symbol('AGENT_POLICY');
 export const AGENT_LIMITS = Symbol('AGENT_LIMITS');
-export const AGENT_MODEL = Symbol('AGENT_MODEL');
 export const AGENT_SYSTEM_PROMPT = Symbol('AGENT_SYSTEM_PROMPT');
 
 interface ActiveRun {
@@ -46,12 +44,10 @@ export class RunsService implements OnApplicationBootstrap {
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly conversations: ConversationsService,
     private readonly events: RunEventsService,
-    private readonly users: UsersService,
-    @Inject(MODEL_PROVIDER) private readonly provider: ModelProvider,
+    private readonly gateway: ModelGateway,
     @Inject(AGENT_TOOLS) private readonly tools: AgentTool[],
     @Inject(AGENT_POLICY) private readonly policy: ToolPolicy,
     @Inject(AGENT_LIMITS) private readonly limits: AgentLimits,
-    @Inject(AGENT_MODEL) private readonly model: string,
     @Inject(AGENT_SYSTEM_PROMPT) private readonly systemPrompt: string,
   ) {}
 
@@ -74,6 +70,7 @@ export class RunsService implements OnApplicationBootstrap {
 
   async start(userId: string, conversationId: string, text: string): Promise<{ runId: string }> {
     const conversation = await this.conversations.getOwned(userId, conversationId);
+    const prepared = await this.gateway.prepare(userId);
     if (this.active.has(userId)) throw new ConflictException('A run is already active. Stop it or wait until it ends.');
 
     const controller = new AbortController();
@@ -88,14 +85,13 @@ export class RunsService implements OnApplicationBootstrap {
     };
     this.active.set(userId, active);
     try {
-      const history = await this.prepareHistory(conversationId, text);
+      const history = await this.prepareHistory(conversationId, text, prepared.format);
       const run = await this.dataSource
         .getRepository(Run)
         .save({ conversationId, state: 'running', pendingApproval: null });
       active.runId = run.id;
       await this.events.append(conversationId, run.id, { type: 'run_started' });
-      const apiKey = (await this.users.getGeminiKey(userId)) ?? '';
-      void this.execute(userId, conversation.id, active, history, apiKey).finally(() => {
+      void this.execute(userId, conversation.id, active, history, prepared).finally(() => {
         this.active.delete(userId);
         finish();
       });
@@ -123,14 +119,14 @@ export class RunsService implements OnApplicationBootstrap {
     await active.done;
   }
 
-  private async prepareHistory(conversationId: string, text: string): Promise<HistoryEntry[]> {
+  private async prepareHistory(conversationId: string, text: string, format: ModelProvider): Promise<HistoryEntry[]> {
     const stored = await this.conversations.loadHistory(conversationId);
-    const repaired = repairHistory(stored, this.provider);
+    const repaired = repairHistory(stored, format);
     if (JSON.stringify(repaired) !== JSON.stringify(stored)) {
       await this.conversations.replaceHistory(conversationId, repaired);
     }
     if (stored.length === 0) await this.conversations.titleFromFirstMessage(conversationId, text);
-    return this.conversations.appendUserParts(conversationId, this.provider.userMessageParts(text));
+    return this.conversations.appendUserParts(conversationId, format.userMessageParts(text));
   }
 
   private async execute(
@@ -138,7 +134,7 @@ export class RunsService implements OnApplicationBootstrap {
     conversationId: string,
     active: ActiveRun,
     history: HistoryEntry[],
-    apiKey: string,
+    prepared: PreparedModel,
   ): Promise<void> {
     const { runId } = active;
     const runs = this.dataSource.getRepository(Run);
@@ -175,7 +171,7 @@ export class RunsService implements OnApplicationBootstrap {
       await requestContext.run({ requestId: requestContext.getStore()?.requestId ?? runId, userId, runId }, () =>
         runAgent(
           {
-            provider: this.provider,
+            provider: prepared.forRun(runId),
             tools: this.tools,
             policy: this.policy,
             approvals: active.approvals,
@@ -184,7 +180,7 @@ export class RunsService implements OnApplicationBootstrap {
             systemPrompt: this.systemPrompt,
             signal: active.controller.signal,
           },
-          { model: this.model, apiKey, history },
+          { model: prepared.model, apiKey: prepared.apiKey, history },
         ),
       );
     } catch (error) {

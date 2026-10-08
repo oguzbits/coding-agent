@@ -90,4 +90,12 @@ describe('validateEnv', () => {
     expect(() => validateEnv({ ...valid, MODEL_PROVIDER: 'other' })).toThrow(/MODEL_PROVIDER/);
     expect(() => validateEnv({ ...valid, AGENT_MAX_STEPS: '0' })).toThrow(/AGENT_MAX_STEPS/);
   });
+  it('defaults the Gemini model and the free-tier limits, and accepts the gemini provider', () => {
+    const env = validateEnv(valid);
+    expect(env.GEMINI_DEFAULT_MODEL).toMatch(/^gemini-/);
+    expect(env.GEMINI_DEFAULT_REQUESTS_PER_MINUTE).toBe(15);
+    expect(env.GEMINI_DEFAULT_TOKENS_PER_MINUTE).toBe(250_000);
+    expect(env.GEMINI_DEFAULT_REQUESTS_PER_DAY).toBe(500);
+    expect(validateEnv({ ...valid, MODEL_PROVIDER: 'gemini' }).MODEL_PROVIDER).toBe('gemini');
+  });
 });
