@@ -1,3 +1,5 @@
+import os from 'node:os';
+import path from 'node:path';
 import { defineConfig } from 'vitest/config';
 
 const testDatabaseUrl =
@@ -28,6 +30,7 @@ export default defineConfig({
             MASTER_KEY: Buffer.alloc(32, 7).toString('base64'),
             REGISTRATION_OPEN: 'true',
             THROTTLE_AUTH_PER_MINUTE: '1000',
+            AGENT_WORKSPACE_DIR: path.join(os.tmpdir(), 'coding-agent-test-workspace'),
           },
           fileParallelism: false,
         },

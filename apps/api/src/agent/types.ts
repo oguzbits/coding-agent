@@ -40,7 +40,7 @@ export interface AgentTool<Schema extends z.ZodType = z.ZodType> {
 
 export type PolicyDecision = 'allow' | 'ask' | 'reject';
 
-interface ToolPolicy {
+export interface ToolPolicy {
   decide(tool: AgentTool, args: unknown): PolicyDecision;
 }
 
@@ -49,7 +49,7 @@ interface ApprovalGate {
   request(callId: string, signal: AbortSignal): Promise<boolean>;
 }
 
-interface RunSink {
+export interface RunSink {
   emit(event: RunEvent): Promise<void>;
   /** Persists the entry and adds it to the history array the run was started with. */
   appendHistory(entry: HistoryEntry): Promise<void>;

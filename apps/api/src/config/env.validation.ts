@@ -21,6 +21,7 @@ const NODE_ENVS = ['development', 'test', 'production'] as const;
 const toBoolean = ({ value }: { value: unknown }) => (value === 'true' ? true : value === 'false' ? false : value);
 const toNumber = ({ value }: { value: unknown }) => (value === undefined ? undefined : Number(value));
 
+const MODEL_PROVIDERS = ['fake'] as const;
 const LOG_LEVELS = ['error', 'warn', 'log', 'debug', 'verbose'] as const;
 
 export class Env {
@@ -92,6 +93,46 @@ export class Env {
 
   @IsIn(LOG_LEVELS)
   LOG_LEVEL: (typeof LOG_LEVELS)[number] = 'log';
+
+  /** Which model backs the agent. `fake` answers from a fixed script and needs no key. */
+  @IsIn(MODEL_PROVIDERS)
+  MODEL_PROVIDER: (typeof MODEL_PROVIDERS)[number] = 'fake';
+
+  /** The directory the agent works in until projects exist. Created at startup if missing. */
+  @IsString()
+  @IsNotEmpty()
+  AGENT_WORKSPACE_DIR = '.agent-workspace';
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_MAX_STEPS = 25;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_REPEAT_FAILURE_LIMIT = 3;
+
+  /** A run ends when a prompt exceeds this many tokens. */
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_HISTORY_TOKEN_BUDGET = 100_000;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_TOOL_OUTPUT_MAX_CHARS = 20_000;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  AGENT_READ_MAX_BYTES = 100_000;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  SSE_HEARTBEAT_SECONDS = 15;
 
   @Transform(({ value }) =>
     typeof value === 'string'

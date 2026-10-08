@@ -74,4 +74,20 @@ describe('validateEnv', () => {
     expect(validateEnv({ ...valid, THROTTLE_AUTH_PER_MINUTE: '1000' }).THROTTLE_AUTH_PER_MINUTE).toBe(1000);
     expect(() => validateEnv({ ...valid, THROTTLE_AUTH_PER_MINUTE: '0' })).toThrow(/THROTTLE_AUTH_PER_MINUTE/);
   });
+  it('defaults the agent settings to the fake provider and bounded runs', () => {
+    const env = validateEnv(valid);
+    expect(env.MODEL_PROVIDER).toBe('fake');
+    expect(env.AGENT_MAX_STEPS).toBe(25);
+    expect(env.AGENT_REPEAT_FAILURE_LIMIT).toBe(3);
+    expect(env.AGENT_HISTORY_TOKEN_BUDGET).toBeGreaterThan(0);
+    expect(env.AGENT_TOOL_OUTPUT_MAX_CHARS).toBeGreaterThan(0);
+    expect(env.AGENT_READ_MAX_BYTES).toBeGreaterThan(0);
+    expect(env.SSE_HEARTBEAT_SECONDS).toBe(15);
+    expect(env.AGENT_WORKSPACE_DIR).toBeTruthy();
+  });
+
+  it('rejects an unknown provider and non-positive limits', () => {
+    expect(() => validateEnv({ ...valid, MODEL_PROVIDER: 'other' })).toThrow(/MODEL_PROVIDER/);
+    expect(() => validateEnv({ ...valid, AGENT_MAX_STEPS: '0' })).toThrow(/AGENT_MAX_STEPS/);
+  });
 });

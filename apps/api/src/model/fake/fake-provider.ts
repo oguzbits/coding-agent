@@ -48,7 +48,7 @@ export class FakeProvider implements ModelProvider {
 
 const abortError = () => new DOMException('The operation was aborted', 'AbortError');
 
-function sleep(ms: number, signal: AbortSignal): Promise<void> {
+export function sleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) return reject(abortError());
     const timer = setTimeout(resolve, ms);
