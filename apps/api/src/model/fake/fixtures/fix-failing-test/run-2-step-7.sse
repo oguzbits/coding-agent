@@ -1,0 +1,10 @@
+data: {"candidates": [{"content": {"parts": [{"text": "I fixed"}],"role": "model"},"index": 0}],"usageMetadata": {"promptTokenCount": 2495,"candidatesTokenCount": 2,"totalTokenCount": 2497,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 2495}],"serviceTier": "standard"},"modelVersion": "gemini-3.5-flash-lite","responseId": "qR_IaoT5DsKL7M8P5vqB6AM"}
+
+data: {"candidates": [{"content": {"parts": [{"text": " the bulk discount condition in `src/cart.mjs` to apply the"}],"role": "model"},"index": 0}],"usageMetadata": {"promptTokenCount": 2495,"candidatesTokenCount": 18,"totalTokenCount": 2513,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 2495}],"serviceTier": "standard"},"modelVersion": "gemini-3.5-flash-lite","responseId": "qR_IaoT5DsKL7M8P5vqB6AM"}
+
+data: {"candidates": [{"content": {"parts": [{"text": " 10 percent discount when the total item quantity is 10 or more (changing `\u003e` to `\u003e=`). All tests now"}],"role": "model"},"index": 0}],"usageMetadata": {"promptTokenCount": 2495,"candidatesTokenCount": 44,"totalTokenCount": 2539,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 2495}],"serviceTier": "standard"},"modelVersion": "gemini-3.5-flash-lite","responseId": "qR_IaoT5DsKL7M8P5vqB6AM"}
+
+data: {"candidates": [{"content": {"parts": [{"text": " pass successfully."}],"role": "model"},"index": 0}],"usageMetadata": {"promptTokenCount": 2495,"candidatesTokenCount": 47,"totalTokenCount": 2542,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 2495}],"serviceTier": "standard"},"modelVersion": "gemini-3.5-flash-lite","responseId": "qR_IaoT5DsKL7M8P5vqB6AM"}
+
+data: {"candidates": [{"content": {"parts": [{"text": "","thoughtSignature": "EmAKXgFpFH0TbMlfRKLBESml35LucGGGJgNW/B/xQ0xePTSDaxsZtPBtIscYBLPC19N0M3qaEQ8bE+pqOHPO01S7uqYXnjUQydvv7GoHSljISUH2IjtWbVAsQaWHs87/HF8="}],"role": "model"},"finishReason": "STOP","index": 0}],"usageMetadata": {"promptTokenCount": 2495,"candidatesTokenCount": 47,"totalTokenCount": 2542,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 2495}],"serviceTier": "standard"},"modelVersion": "gemini-3.5-flash-lite","responseId": "qR_IaoT5DsKL7M8P5vqB6AM"}
+

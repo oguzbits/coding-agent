@@ -66,3 +66,10 @@ test('blocks env files and key files but not the example', () => {
   allowed('echo environment');
   allowed('git log --oneline -- docs/dotenv.md');
 });
+
+test('ignores the body of a cat heredoc that writes a file, but not interpreter heredocs', () => {
+  allowed("cat > src/a.ts <<'EOF'\nconst x = previous.key;\nEOF");
+  blocked("cat > src/a.ts <<'EOF'\nok\nEOF\ncat .env");
+  blocked("python3 - <<'EOF'\nprint(open('.env').read())\nEOF");
+  blocked("cat <<'EOF' > .env\nSECRET=1\nEOF");
+});

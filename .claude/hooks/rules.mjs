@@ -55,7 +55,14 @@ function checkRemove(tokens, context, state) {
   return null;
 }
 
+// `cat > file <<'EOF' ... EOF` only writes text. Its body is source code or prose, not a command, so it is not scanned.
+// Heredocs fed to interpreters (python, node, sh) stay in: their body is executed.
+const CAT_HEREDOC = /^[ \t]*cat\b(?=[^\n]*[^<]>)[^\n]*<<-?\s*['"]?(\w+)['"]?[^\n]*\n[\s\S]*?\n\1[ \t]*$/gm;
+
+const stripFileWritingHeredocs = (command) => command.replace(CAT_HEREDOC, (block) => block.split('\n')[0]);
+
 export function checkCommand(command, context) {
+  command = stripFileWritingHeredocs(command);
   if (touchesSecretFile(command)) {
     return { allowed: false, reason: 'access to .env files and key files is blocked (.env.example is fine)' };
   }
