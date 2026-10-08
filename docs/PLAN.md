@@ -28,11 +28,18 @@ Mehrnutzer-Web-App, läuft zunächst lokal und ist so gebaut, dass sie später g
 - **Agent-Schleife:** Modell aufrufen, Tool-Aufrufe ausführen, Ergebnisse zurückgeben, wiederholen bis zum Ende. Die Schleife ist
   ein Zustandsautomat, der Ereignisse ausgibt. Zustände: läuft, wartet auf Freigabe, fertig, abgebrochen, Fehler.
 - **Abbruch und Obergrenzen:** Stopp jederzeit (AbortController bis zum Modellaufruf und zur Prozessgruppe des Befehls). Maximale
-  Schritte pro Lauf stehen in der Config.
+  Schritte pro Lauf stehen in der Config. Pro Nutzer läuft höchstens ein Lauf gleichzeitig.
+- **Fehler in der Schleife:** Ungültige Tool-Argumente und fehlgeschlagene Tools gehen als Tool-Ergebnis an das Modell zurück.
+  Wiederholt das Modell denselben fehlschlagenden Aufruf mehrfach, bricht der Lauf mit einer klaren Meldung ab.
+- **System-Prompt:** eigene, versionierte Datei. Er beschreibt den Umgang mit den Tools und hält das Modell zu wenigen,
+  gezielten Aufrufen an.
 - **Tools** (je ein NestJS-Provider mit Zod-Schema): `read_file`, `list_files`, `search`, `edit_file`, `write_file`,
-  `run_command`.
+  `run_command`. `edit_file` ersetzt ein exaktes, in der Datei eindeutiges Textstück und nur in Dateien, die in der Sitzung
+  bereits gelesen wurden.
 - **Berechtigungen:** Kern des Systems. Ein Policy-Service entscheidet pro Tool-Aufruf und Modus: erlauben, fragen oder ablehnen.
-  Er läuft in der Schleife, nicht als HTTP-Guard. Siehe Matrix unten.
+  Er läuft in der Schleife, nicht als HTTP-Guard. Siehe Matrix unten. Die Freigabe zeigt, was passieren wird: bei Dateien einen
+  Text-Diff, bei Befehlen die Befehlszeile.
+- **Protokoll:** Jeder Modellaufruf wird mit Tokens, Dauer und Fehler mitgeschrieben, ohne Inhalte und ohne Key.
 - **Projekte:** Ein Projekt ist ein Ordner unter `<Workspace-Wurzel>/<Nutzer>/<Projekt>`. Der Nutzer legt es leer an oder klont
   ein öffentliches Git-Repo. Der Agent arbeitet immer in genau einem Projekt.
 - **Sitzungen:** gehören zu einem Nutzer und einem Projekt und liegen in der Datenbank. Der Verlauf reicht anbieterspezifische
@@ -102,7 +109,7 @@ Der Server führt Shell-Befehle aus. Ohne Sandbox laufen sie mit den Rechten des
 ## MVP
 
 Konten mit E-Mail und Passwort, Profil mit eigenem Gemini-Key, Projekte, sechs Tools, Berechtigungs-Modi, gespeicherte Sitzungen,
-Chat mit Live-Schritten, Freigabe-Buttons und Stopp-Button. Lokal betrieben, Registrierung geschlossen.
+Chat mit Live-Schritten, Freigabe mit Diff-Vorschau und Stopp-Button. Lokal betrieben, Registrierung geschlossen.
 
 **Out of scope:** Sandbox, Deploy, offene Registrierung, GitHub-Login, Zwei-Faktor, Rollen und Teams, Git-Push, Subagenten,
 IDE-Integration, Diff-Ansicht, Datei-Baum, Queue, Verläufe verdichten.
@@ -123,8 +130,8 @@ IDE-Integration, Diff-Ansicht, Datei-Baum, Queue, Verläufe verdichten.
 2. NestJS-Gerüst, Config, Datenbank, Linting und Tests. Bindung und Prüfung von `Origin`/`Host`.
 3. Konten: registrieren, anmelden, abmelden, Passwort ändern, Schutz der Routen, Profil mit verschlüsseltem Gemini-Key.
 4. Agent-Schleife mit `ModelProvider`-Schnittstelle, Fake-Provider aus den Fixtures und einem Tool. Zustände, Abbruch,
-   Schrittlimit, Sitzungen in der Datenbank. Tests ohne echte API-Aufrufe.
-5. Gemini-Adapter und Rate-Limiter pro Nutzer.
+   Schrittlimit, Fehlerbehandlung, System-Prompt, Sitzungen in der Datenbank. Tests ohne echte API-Aufrufe.
+5. Gemini-Adapter, Rate-Limiter pro Nutzer, Protokoll der Modellaufrufe.
 6. Projekte, übrige Tools, Policy-Service und Modi, Schutz für Dateizugriff und Befehle.
 7. SSE-Streaming und Frontend: Anmeldung, Profil, Projekte, Chat.
 8. Mail-Abläufe: E-Mail bestätigen, Passwort zurücksetzen. Aktive Anmeldungen, Konto löschen.
