@@ -13,3 +13,6 @@ coverage/
 # Spikes: raw responses and work copies stay local
 spikes/results/
 spikes/work/
+
+# Execution ledger (local)
+.superpowers/
