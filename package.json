@@ -10,13 +10,27 @@
     "apps/*"
   ],
   "scripts": {
-    "test": "npm test --workspace apps/api"
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "deps": "depcruise apps/api/src --config .dependency-cruiser.cjs",
+    "dead-code": "knip",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run typecheck && npm run lint && npm run deps && npm run dead-code",
+    "test": "npm test --workspaces --if-present && node --test \".claude/hooks/*.test.mjs\"",
+    "test:db": "npm run test:db --workspaces --if-present",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "prepare": "husky"
   },
   "devDependencies": {
     "dependency-cruiser": "^18.5.0",
+    "eslint": "^10.12.0",
     "husky": "^9.1.7",
     "knip": "^6.40.0",
     "lint-staged": "^17.6.0",
-    "prettier": "^3.9.9"
+    "prettier": "^3.9.9",
+    "typescript-eslint": "^8.71.1"
   }
 }

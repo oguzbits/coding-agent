@@ -1,10 +1,20 @@
 {
-  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/crates/oxc_linter/src/rules.rs",
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "oxc", "unicorn"],
+  "env": { "node": true },
   "rules": {
-    "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/no-floating-promises": "warn"
+    "typescript/no-explicit-any": "error",
+    "typescript/ban-ts-comment": "error",
+    "no-empty": "error",
+    "no-console": "error",
+    "complexity": ["error", 10],
+    "max-lines": ["error", { "max": 300, "skipBlankLines": true, "skipComments": true }],
+    "max-lines-per-function": ["error", { "max": 80, "skipBlankLines": true, "skipComments": true }]
   },
-  "env": {
-    "node": true
-  }
+  "overrides": [
+    {
+      "files": ["**/*.test.ts"],
+      "rules": { "max-lines-per-function": "off", "max-lines": "off" }
+    }
+  ]
 }

@@ -2,11 +2,21 @@
 // The check is a heuristic on the command text: it catches the usual spellings, it is not a sandbox.
 import path from 'node:path';
 
-const SECRET_FILE = /(?:^|[\s/='"])(?:\.env(?:\.[\w.-]+)?|[\w.-]+\.(?:pem|key|p12|pfx)|id_(?:rsa|ed25519|ecdsa|dsa)[\w.-]*)(?=$|[\s'";|&)])/g;
+const SECRET_FILE =
+  /(?:^|[\s/='"])(?:\.env(?:\.[\w.-]+)?|[\w.-]+\.(?:pem|key|p12|pfx)|id_(?:rsa|ed25519|ecdsa|dsa)[\w.-]*)(?=$|[\s'";|&)])/g;
 
-const splitSegments = (command) => command.split(/&&|\|\||[;|\n]/).map((segment) => segment.trim()).filter(Boolean);
-const tokenize = (segment) => segment.match(/"[^"]*"|'[^']*'|\S+/g)?.map((token) => token.replace(/^["']|["']$/g, '')) ?? [];
-const shortFlags = (tokens) => tokens.filter((token) => /^-[a-zA-Z]+$/.test(token)).map((token) => token.slice(1)).join('');
+const splitSegments = (command) =>
+  command
+    .split(/&&|\|\||[;|\n]/)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+const tokenize = (segment) =>
+  segment.match(/"[^"]*"|'[^']*'|\S+/g)?.map((token) => token.replace(/^["']|["']$/g, '')) ?? [];
+const shortFlags = (tokens) =>
+  tokens
+    .filter((token) => /^-[a-zA-Z]+$/.test(token))
+    .map((token) => token.slice(1))
+    .join('');
 
 function touchesSecretFile(command) {
   return [...command.matchAll(SECRET_FILE)].some((match) => !/^[\s/='"]?\.env\.example$/.test(match[0]));

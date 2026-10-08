@@ -20,7 +20,7 @@ export default defineConfig({
           name: 'db',
           globals: true,
           include: ['src/**/*.db.test.ts'],
-          env: { TEST_DATABASE_URL: testDatabaseUrl },
+          env: { TEST_DATABASE_URL: testDatabaseUrl, DATABASE_URL: testDatabaseUrl, LOG_LEVEL: 'error' },
           fileParallelism: false,
         },
       },

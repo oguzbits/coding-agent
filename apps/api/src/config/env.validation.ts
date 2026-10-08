@@ -1,5 +1,5 @@
 import { plainToInstance, Transform } from 'class-transformer';
-import { IsArray, IsIn, IsInt, IsString, IsUrl, Max, Min, validateSync } from 'class-validator';
+import { IsArray, IsIn, IsInt, IsNotEmpty, IsString, IsUrl, Max, Min, validateSync } from 'class-validator';
 
 const NODE_ENVS = ['development', 'test', 'production'] as const;
 const LOG_LEVELS = ['error', 'warn', 'log', 'debug', 'verbose'] as const;
@@ -13,6 +13,10 @@ export class Env {
   @Min(1)
   @Max(65535)
   PORT = 3000;
+
+  @IsString()
+  @IsNotEmpty()
+  HOST = '127.0.0.1';
 
   @IsString()
   @IsUrl({

@@ -5,10 +5,13 @@ down in the commit message or in [docs/BACKLOG.md](docs/BACKLOG.md).
 
 ## Commands
 
-- Hook tests: `node --test ".claude/hooks/*.test.mjs"`
-- Everything else (`npm run check`, `npm test`, `npm run test:db`, build) arrives with slice 2; update this list then.
+- Node 24 (`.nvmrc`); Postgres via `npm run db:up` (Docker Compose)
+- `npm run check`: format, typecheck, oxlint + ESLint, dependency-cruiser, knip (all static checks)
+- `npm test`: unit tests, offline (also runs the hook tests); `npm run test:db`: tests with Postgres (`*.db.test.ts`)
+- `npm run build`; migrations: `npm run migration:generate -- src/database/migrations/<Name>` in `apps/api`, then register the
+  class in `src/database/migrations/index.ts`
 
-## Layers (from slice 2)
+## Layers
 
 - `apps/api` (NestJS) and `apps/web` (React) import nothing from each other. The web app gets its types from the OpenAPI
   description.
