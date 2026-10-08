@@ -304,7 +304,7 @@ Der Server führt Shell-Befehle aus. Ohne Sandbox laufen sie mit den Rechten des
 - **Das Kontingent ist das größte Produktrisiko.** Die Limits gelten pro Google-Projekt, nicht pro Key. Im Dashboard standen am
   2026-09-29 für die Flash-Modelle 5 Anfragen pro Minute und 20 pro Tag, für Flash-Lite 15 pro Minute und 500 pro Tag. Mit 20
   Anfragen am Tag ist eine einzige Aufgabe kaum zu schaffen, praktisch nutzbar ist also nur Flash-Lite. Ob Flash-Lite für
-  mehrschrittige Tool-Aufrufe gut genug ist, entscheidet der Spike. Reicht es nicht, wird vor Slice 2 neu entschieden (bezahltes
+  mehrschrittige Tool-Aufrufe gut genug ist, entscheidet der Spike (am 2026-10-09 für eine kleine Aufgabe: ja, siehe `docs/SPIKE-ERGEBNISSE.md`). Reicht es nicht, wird vor Slice 2 neu entschieden (bezahltes
   Tier oder anderer Anbieter); die `ModelProvider`-Schnittstelle bleibt dafür der Hebel.
 - **Bedingung für Nutzer im EWR:** Die Zusatzbedingungen der Gemini-API erlauben nur bezahlte Dienste, wenn eine Anwendung
   Nutzern im EWR, in der Schweiz oder im Vereinigten Königreich bereitgestellt wird. Lokal mit dem eigenen Konto ist das kein
@@ -415,6 +415,8 @@ Die Grundausstattung für Logs entsteht mit dem Gerüst in Slice 2, alles Weiter
    - Zählen Denk-Tokens gegen das Limit pro Minute?
    - Die Antworten als Fixtures für Slice 4 speichern: roh für die Tests des Adapters, in der neutralen Form der
      `ModelProvider`-Schnittstelle für die Tests der Schleife.
+   - Stand 2026-10-09: durchgeführt, siehe `docs/SPIKE-ERGEBNISSE.md`; die Fixtures liegen in `spikes/fixtures/`. Offen blieben
+     der Body des 429, mehrere Aufrufe in einer Antwort und Denk-Tokens.
 2. NestJS-Gerüst, Config, Postgres (Docker Compose) mit TypeORM und erster Migration, Swagger, Linting und Tests,
    strukturierte Logs mit Korrelations-IDs. Bindung und
    Prüfung von `Origin`/`Host`. Zuerst wird bewiesen, dass im ESM-Gerüst eine Migration erzeugt und ausgeführt werden kann und
