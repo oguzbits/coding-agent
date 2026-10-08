@@ -13,6 +13,9 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 
 ## Open
 
+- CI workflow (`.github/workflows/ci.yml`) exists locally but is not pushed: the GitHub token lacks the `workflow` scope.
+  Fix: `gh auth refresh -h github.com -s workflow`, then remove `.github/workflows/` from `.git/info/exclude` and commit it.
+
 - 429 response body (minute vs. day limit, wait time): measure in slice 5
 - Several tool calls in one response; thought tokens against the minute limit
 - Harder tasks than the spike (larger repos, unclear failures)
