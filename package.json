@@ -30,7 +30,8 @@
     "env:init": "node scripts/init-env.mjs",
     "e2e": "npm run e2e -w @coding-agent/web",
     "load:server": "node scripts/load-server.mjs",
-    "load": "node scripts/load.mjs"
+    "load": "node scripts/load.mjs",
+    "gemini:smoke": "node scripts/gemini-smoke.mjs"
   },
   "devDependencies": {
     "dependency-cruiser": "^18.5.0",
