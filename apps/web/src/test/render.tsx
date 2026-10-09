@@ -1,13 +1,19 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { MemoryRouter, Route, Routes, type InitialEntry } from 'react-router';
+import { MemoryRouter, Route, Routes, useLocation, type InitialEntry } from 'react-router';
 
 export function json(status: number, body?: unknown) {
   return new Response(body === undefined ? null : JSON.stringify(body), {
     status,
     headers: { 'content-type': 'application/json' },
   });
+}
+
+/** Shows the current path and query, so tests can check what the address bar would say. */
+function LocationProbe() {
+  const { pathname, search } = useLocation();
+  return <p aria-label="location">{pathname + search}</p>;
 }
 
 /** Renders the element at the given path inside the providers the app uses. Other paths show their own name. */
@@ -20,6 +26,7 @@ export function renderAt(path: InitialEntry, routePath: string, element: ReactNo
           <Route path={routePath} element={element} />
           <Route path="*" element={<p>Elsewhere</p>} />
         </Routes>
+        <LocationProbe />
       </MemoryRouter>
     </QueryClientProvider>,
   );

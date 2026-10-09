@@ -1,17 +1,18 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { Link } from 'react-router';
 import { useResetPassword } from '../api/queries';
 import { AuthCard } from '../ui/auth-card';
 import { Button, ErrorText, Field } from '../ui/controls';
+import { useLinkToken } from './use-link-token';
 
 export function ResetPasswordPage() {
-  const [params] = useSearchParams();
+  const token = useLinkToken();
   const reset = useResetPassword();
   const [newPassword, setNewPassword] = useState('');
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    reset.mutate({ token: params.get('token') ?? '', newPassword });
+    reset.mutate({ token, newPassword });
   };
   if (reset.isSuccess) {
     return (

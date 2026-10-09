@@ -12,6 +12,7 @@ describe('pages behind the mailed links', () => {
     const calls = stubApi({ 'POST /api/auth/confirm-email': () => json(204), 'GET /api/auth/me': () => json(401, {}) });
     renderAt('/confirm-email?token=abc', '/confirm-email', <ConfirmEmailPage />);
     expect(await screen.findByText(/address is confirmed/i)).toBeVisible();
+    expect(screen.getByLabelText('location')).toHaveTextContent(/^\/confirm-email$/);
     expect(calls.find((c) => c.key === 'POST /api/auth/confirm-email')?.body).toEqual({ token: 'abc' });
   });
 
@@ -34,6 +35,7 @@ describe('pages behind the mailed links', () => {
     const calls = stubApi({ 'POST /api/auth/reset-password': () => json(204) });
     renderAt('/reset-password?token=xyz', '/reset-password', <ResetPasswordPage />);
     await userEvent.type(await screen.findByLabelText('New password'), 'a long new password');
+    expect(screen.getByLabelText('location')).toHaveTextContent(/^\/reset-password$/);
     await userEvent.click(screen.getByRole('button', { name: 'Set password' }));
     expect(await screen.findByText(/password was changed/i)).toBeVisible();
     expect(calls[0]?.body).toEqual({ token: 'xyz', newPassword: 'a long new password' });

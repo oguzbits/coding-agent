@@ -1,20 +1,21 @@
 import { useEffect, useRef } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { Link } from 'react-router';
 import { useConfirmEmail } from '../api/queries';
 import { AuthCard } from '../ui/auth-card';
 import { ErrorText } from '../ui/controls';
+import { useLinkToken } from './use-link-token';
 
 /** Opened from the link in the confirmation mail. The token works once, so the call must not run twice. */
 export function ConfirmEmailPage() {
-  const [params] = useSearchParams();
+  const token = useLinkToken();
   const confirm = useConfirmEmail();
   const started = useRef(false);
 
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    confirm.mutate(params.get('token') ?? '');
-  }, [confirm, params]);
+    confirm.mutate(token);
+  }, [confirm, token]);
 
   return (
     <AuthCard title="Confirm your email">
