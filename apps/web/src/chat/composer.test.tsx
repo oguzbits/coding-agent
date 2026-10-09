@@ -40,4 +40,9 @@ describe('Composer', () => {
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(screen.getByLabelText('Message')).toHaveValue('keep me');
   });
+
+  it('shows a toolbar next to the send button', () => {
+    render(<Composer onSubmit={vi.fn()} toolbar={<span>Mode picker</span>} />);
+    expect(screen.getByText('Mode picker')).toBeInTheDocument();
+  });
 });

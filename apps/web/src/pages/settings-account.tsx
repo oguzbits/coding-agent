@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
-import { useDeleteAccount, useEndOtherSessions, useEndSession, useSessions } from '../api/queries';
-import { Button, ErrorText, Field, Section } from '../ui/controls';
+import { useDeleteAccount, useEndOtherSessions, useEndSession, useMe, useSessions } from '../api/queries';
+import { Button, ConfirmButton, ErrorText, Field, HiddenUsername, Section } from '../ui/controls';
 
 const formatTime = (iso: string | null) => (iso ? new Date(iso).toLocaleString() : 'unknown time');
 
@@ -44,19 +44,15 @@ export function SessionsSection() {
 
 export function DeleteAccountSection() {
   const remove = useDeleteAccount();
+  const me = useMe();
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (!window.confirm('Delete your account with all projects, files and conversations? This cannot be undone.'))
-      return;
-    remove.mutate(password, { onSuccess: () => void navigate('/login') });
-  };
   return (
     <Section title="Delete account">
       <p className="text-sm text-muted">Removes your account, all projects with their files and every conversation.</p>
-      <form onSubmit={submit} className="flex flex-col gap-3 sm:max-w-sm">
+      <form onSubmit={(event: FormEvent) => event.preventDefault()} className="flex flex-col gap-3 sm:max-w-sm">
+        <HiddenUsername email={me.data?.email} />
         <Field
           label="Password"
           type="password"
@@ -65,9 +61,15 @@ export function DeleteAccountSection() {
           onChange={(e) => setPassword(e.target.value)}
         />
         <div>
-          <Button type="submit" variant="danger" disabled={!password || remove.isPending}>
+          <ConfirmButton
+            variant="danger"
+            disabled={!password || remove.isPending}
+            question="This cannot be undone."
+            confirmLabel="Delete everything"
+            onConfirm={() => remove.mutate(password, { onSuccess: () => void navigate('/login') })}
+          >
             Delete account
-          </Button>
+          </ConfirmButton>
         </div>
       </form>
       <ErrorText error={remove.error} />

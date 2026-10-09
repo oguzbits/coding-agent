@@ -13,7 +13,7 @@
     },
     "apps/web": {
       "project": ["src/**/*.{ts,tsx}"],
-      "ignoreDependencies": ["@fontsource/outfit", "@fontsource/ibm-plex-mono", "tailwindcss"]
+      "ignoreDependencies": ["@fontsource/ibm-plex-mono", "tailwindcss"]
     }
   }
 }

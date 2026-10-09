@@ -5,13 +5,14 @@ import {
   useChangePassword,
   useClearGeminiKey,
   useDeleteProject,
+  useMe,
   useProjects,
   useSetGeminiKey,
   useSetModel,
   useSettings,
   useUsage,
 } from '../api/queries';
-import { Button, ErrorText, Field, Section } from '../ui/controls';
+import { Button, ConfirmButton, ErrorText, Field, HiddenUsername, Section } from '../ui/controls';
 import { DeleteAccountSection, SessionsSection } from './settings-account';
 
 function GeminiKeySection() {
@@ -50,10 +51,18 @@ function GeminiKeySection() {
           </Button>
         ) : null}
       </form>
+      {save.isSuccess && value === '' ? (
+        <p role="status" className="text-sm text-success">
+          Key saved.
+        </p>
+      ) : null}
       <ErrorText error={save.error ?? clear.error} />
     </Section>
   );
 }
+
+/** The API refuses larger limits. */
+const LIMIT_MAX = 100_000_000;
 
 function numberOrNull(text: string): number | null {
   return text.trim() === '' ? null : Number(text);
@@ -83,26 +92,34 @@ function ModelSection() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    save.mutate({
-      modelName: values.model.trim() || null,
-      requestsPerMinute: numberOrNull(values.perMinute),
-      tokensPerMinute: numberOrNull(values.tokens),
-      requestsPerDay: numberOrNull(values.perDay),
-    });
+    save.mutate(
+      {
+        modelName: values.model.trim() || null,
+        requestsPerMinute: numberOrNull(values.perMinute),
+        tokensPerMinute: numberOrNull(values.tokens),
+        requestsPerDay: numberOrNull(values.perDay),
+      },
+      { onSuccess: () => setDraft({}) },
+    );
   };
   return (
     <Section title="Model and limits">
       <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
         <Field label="Model" placeholder="default" {...bind('model')} />
-        <Field label="Requests per minute" type="number" min={1} {...bind('perMinute')} />
-        <Field label="Tokens per minute" type="number" min={1} {...bind('tokens')} />
-        <Field label="Requests per day" type="number" min={1} {...bind('perDay')} />
+        <Field label="Requests per minute" type="number" min={1} max={LIMIT_MAX} {...bind('perMinute')} />
+        <Field label="Tokens per minute" type="number" min={1} max={LIMIT_MAX} {...bind('tokens')} />
+        <Field label="Requests per day" type="number" min={1} max={LIMIT_MAX} {...bind('perDay')} />
         <div>
           <Button type="submit" variant="primary" disabled={save.isPending}>
             Save
           </Button>
         </div>
       </form>
+      {save.isSuccess && Object.keys(draft).length === 0 ? (
+        <p role="status" className="text-sm text-success">
+          Saved.
+        </p>
+      ) : null}
       <ErrorText error={save.error} />
       {usage.data ? (
         <p className="text-sm text-muted">
@@ -116,6 +133,7 @@ function ModelSection() {
 
 function PasswordSection() {
   const change = useChangePassword();
+  const me = useMe();
   const [currentPassword, setCurrent] = useState('');
   const [newPassword, setNew] = useState('');
 
@@ -134,6 +152,7 @@ function PasswordSection() {
   return (
     <Section title="Password">
       <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
+        <HiddenUsername email={me.data?.email} />
         <Field
           label="Current password"
           type="password"
@@ -170,17 +189,16 @@ function ProjectsSection() {
         {projects.data?.map((project) => (
           <li key={project.id} className="flex h-9 items-center justify-between rounded-field bg-surface px-3 text-sm">
             <span className="truncate">{project.name}</span>
-            <Button
+            <ConfirmButton
               variant="ghost"
               aria-label={`Delete ${project.name}`}
+              question={`Delete "${project.name}" with all its files and conversations?`}
+              confirmLabel="Delete"
               disabled={remove.isPending}
-              onClick={() => {
-                if (window.confirm(`Delete "${project.name}" with all its files and conversations?`))
-                  remove.mutate(project.id);
-              }}
+              onConfirm={() => remove.mutate(project.id)}
             >
               <Trash2 size={14} />
-            </Button>
+            </ConfirmButton>
           </li>
         ))}
       </ul>

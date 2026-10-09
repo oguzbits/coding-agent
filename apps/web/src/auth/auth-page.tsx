@@ -13,17 +13,24 @@ const TEXT = {
   },
 } as const;
 
+/** Only paths of this app count; anything else (other sites, protocol-relative URLs) falls back to the start page. */
+function safeTarget(from: unknown): string {
+  return typeof from === 'string' && from.startsWith('/') && !from.startsWith('//') ? from : '/';
+}
+
 /** Sign-in at /login, account creation at /register. After creating an account the user lands on /login with a note. */
 export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const me = useMe();
   const navigate = useNavigate();
   const login = useLogin();
   const register = useRegister();
-  const created = (useLocation().state as { created?: boolean } | null)?.created === true;
+  const state = useLocation().state as { created?: boolean; from?: string } | null;
+  const created = state?.created === true;
+  const target = safeTarget(state?.from);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  if (me.data) return <Navigate to="/" replace />;
+  if (me.data) return <Navigate to={target} replace />;
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -33,7 +40,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
       return;
     }
     await login.mutateAsync({ email, password });
-    await navigate('/');
+    await navigate(target);
   };
   const failure = mode === 'login' ? login.error : register.error;
   const text = TEXT[mode];

@@ -11,7 +11,7 @@ function json(status: number, body?: unknown) {
   });
 }
 
-function renderPage(path = '/login') {
+function renderPage(path: string | { pathname: string; state?: unknown } = '/login') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
@@ -20,6 +20,7 @@ function renderPage(path = '/login') {
           <Route path="/login" element={<AuthPage mode="login" />} />
           <Route path="/register" element={<AuthPage mode="register" />} />
           <Route path="/" element={<p>Start</p>} />
+          <Route path="/c/:id" element={<p>Chat page</p>} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -86,5 +87,28 @@ describe('AuthPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeVisible();
     expect(screen.getByText(/Account created/)).toBeVisible();
+  });
+
+  it.each([
+    ['/c/42?tab=files', 'Chat page'],
+    ['//evil.example', 'Start'],
+    ['https://evil.example', 'Start'],
+  ])('after signing in goes back to %s only when it is a page of this app', async (from, shown) => {
+    let signedIn = false;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (request: Request) => {
+        if (new URL(request.url).pathname === '/api/auth/login') {
+          signedIn = true;
+          return json(200, { id: 'u1', email: 'a@b.de' });
+        }
+        return signedIn ? json(200, { id: 'u1', email: 'a@b.de' }) : json(401, { message: 'Unauthorized' });
+      }),
+    );
+    renderPage({ pathname: '/login', state: { from } });
+    await userEvent.type(await screen.findByLabelText('Email'), 'a@b.de');
+    await userEvent.type(screen.getByLabelText('Password'), 'secret-password');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    expect(await screen.findByText(shown)).toBeVisible();
   });
 });

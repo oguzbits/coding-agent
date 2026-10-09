@@ -1,4 +1,4 @@
-import { useId, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from 'react';
+import { useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from 'react';
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
 
@@ -23,7 +23,37 @@ export function Button({
   );
 }
 
-export const inputStyle =
+interface ConfirmButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'> {
+  variant?: Variant;
+  question: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+}
+
+/** A button that asks "are you sure?" in place before it does something that cannot be undone. */
+export function ConfirmButton({ question, confirmLabel, onConfirm, ...props }: ConfirmButtonProps) {
+  const [asking, setAsking] = useState(false);
+  if (!asking) return <Button {...props} onClick={() => setAsking(true)} />;
+  return (
+    <span role="group" aria-label={question} className="flex items-center gap-1">
+      <span className="text-xs text-muted">{question}</span>
+      <Button
+        variant="danger"
+        onClick={() => {
+          setAsking(false);
+          onConfirm();
+        }}
+      >
+        {confirmLabel}
+      </Button>
+      <Button variant="ghost" onClick={() => setAsking(false)}>
+        Cancel
+      </Button>
+    </span>
+  );
+}
+
+const inputStyle =
   'h-9 w-full rounded-field border border-line bg-base px-3 text-sm placeholder:text-muted disabled:opacity-50';
 
 export function Field({
@@ -58,5 +88,21 @@ export function Section({ title, children }: { title: string; children: ReactNod
       <h2 className="text-[15px] font-medium">{title}</h2>
       {children}
     </section>
+  );
+}
+
+/** Tells password managers which account a password form belongs to; the field itself is not shown. */
+export function HiddenUsername({ email }: { email: string | undefined }) {
+  return (
+    <input
+      type="text"
+      name="username"
+      autoComplete="username"
+      value={email ?? ''}
+      readOnly
+      tabIndex={-1}
+      aria-hidden
+      className="sr-only"
+    />
   );
 }

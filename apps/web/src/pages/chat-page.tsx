@@ -57,7 +57,6 @@ export function ChatPage() {
         <header className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-line-subtle px-4">
           <h1 className="truncate text-sm font-medium">{conversation.data.title}</h1>
           <div className="flex items-center gap-3">
-            <ModeSelect mode={conversation.data.mode} onChange={(mode) => update.mutate({ mode })} />
             <Button
               variant="ghost"
               aria-pressed={showFiles}
@@ -77,6 +76,7 @@ export function ChatPage() {
           <ErrorText error={failure} />
           <Composer
             running={chat.running}
+            toolbar={<ModeSelect mode={conversation.data.mode} onChange={(mode) => update.mutate({ mode })} />}
             {...gate}
             onStop={() => abort.mutate()}
             onSubmit={(text) =>

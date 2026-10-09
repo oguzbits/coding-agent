@@ -37,7 +37,6 @@ describe('account sections of the settings', () => {
   });
 
   it('deletes the account only with the password and leaves for the sign-in page', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     const calls = stubApi({ 'DELETE /api/auth/account': () => json(204) });
     renderAt('/settings', '/settings', <DeleteAccountSection />);
     const button = screen.getByRole('button', { name: 'Delete account' });
@@ -45,17 +44,19 @@ describe('account sections of the settings', () => {
 
     await userEvent.type(screen.getByLabelText('Password'), 'my password');
     await userEvent.click(button);
+    expect(calls.map((call) => call.key)).not.toContain('DELETE /api/auth/account');
+    await userEvent.click(screen.getByRole('button', { name: 'Delete everything' }));
 
-    expect(calls[0]).toEqual({ key: 'DELETE /api/auth/account', body: { password: 'my password' } });
+    expect(calls.find((call) => call.key === 'DELETE /api/auth/account')?.body).toEqual({ password: 'my password' });
     expect(await screen.findByText('Elsewhere')).toBeVisible();
   });
 
   it('shows the message of the server when the password is wrong', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     stubApi({ 'DELETE /api/auth/account': () => json(403, { message: 'The password is wrong' }) });
     renderAt('/settings', '/settings', <DeleteAccountSection />);
     await userEvent.type(screen.getByLabelText('Password'), 'nope');
     await userEvent.click(screen.getByRole('button', { name: 'Delete account' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Delete everything' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('The password is wrong');
   });
 });
