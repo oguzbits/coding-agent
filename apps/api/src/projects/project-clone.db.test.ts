@@ -53,7 +53,7 @@ describe('cloning a project (HTTP)', () => {
   let alice: Agent;
   let aliceId: string;
 
-  const call = (agent: Agent, method: 'get' | 'post', url: string) =>
+  const call = (agent: Agent, method: 'get' | 'post' | 'delete', url: string) =>
     agent[method](`/api${url}`).set('Host', 'localhost:3000');
   const exists = (target: string) =>
     access(target).then(
@@ -132,6 +132,22 @@ describe('cloning a project (HTTP)', () => {
       interval: 200,
     });
     expect(await projectCount()).toBe(1);
+  });
+
+  it('leaves no folder behind when the project is deleted while it is cloned', async () => {
+    const running = clone('https://github.com/a/slow').then((response) => response);
+    let id = '';
+    await vi.waitFor(async () => {
+      const rows = await dataSource.query('SELECT id FROM projects');
+      expect(rows).toHaveLength(1);
+      id = rows[0].id;
+    });
+
+    expect((await call(alice, 'delete', `/projects/${id}`)).status).toBe(204);
+
+    expect((await running).status).not.toBe(201);
+    await vi.waitFor(async () => expect(await exists(path.join(root, aliceId, id))).toBe(false), { timeout: 3000 });
+    expect(await projectCount()).toBe(0);
   });
 
   it('refuses a repository above the size limit', async () => {

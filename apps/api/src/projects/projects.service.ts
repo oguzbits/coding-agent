@@ -34,6 +34,8 @@ export class ProjectsService {
     private readonly cloning: CloningOptions,
   ) {}
   private readonly cloningNow = new Set<string>();
+  /** Clones in progress by project id, so deleting the project can stop its clone. */
+  private readonly cloneStops = new Map<string, () => void>();
 
   /** Others (the run registry) register to be asked before a project goes away, so a running agent stops first. */
   onBeforeRemove(hook: RemovalHook): void {
@@ -69,13 +71,25 @@ export class ProjectsService {
       const left = this.cloning.userStorageMaxBytes - (await directorySize(path.join(this.root, userId)));
       if (left <= 0) throw new PayloadTooLargeException('Your storage is full. Delete a project to make room.');
       const project = await this.projects.save(this.projects.create({ userId, name, origin: url }));
+      const own = new AbortController();
+      this.cloneStops.set(project.id, () => own.abort());
       try {
-        await this.cloning.cloner.clone(url, this.directoryOf(userId, project.id), signal, {
-          maxBytes: left,
-        });
+        await this.cloning.cloner.clone(
+          url,
+          this.directoryOf(userId, project.id),
+          AbortSignal.any([signal, own.signal]),
+          {
+            maxBytes: left,
+          },
+        );
+        // Deleted while it was cloning: the folder must not outlive the project.
+        if (own.signal.aborted) throw new NotFoundException('The project was deleted while it was cloned.');
       } catch (error) {
         await this.projects.delete({ id: project.id });
+        await rm(this.directoryOf(userId, project.id), { recursive: true, force: true });
         throw this.cloneFailure(error);
+      } finally {
+        this.cloneStops.delete(project.id);
       }
       return project;
     } finally {
@@ -126,6 +140,7 @@ export class ProjectsService {
   async remove(userId: string, id: string): Promise<void> {
     await this.getOwned(userId, id);
     for (const hook of this.beforeRemove) await hook(userId, id);
+    this.cloneStops.get(id)?.();
     await this.projects.delete({ id });
     await rm(this.directoryOf(userId, id), { recursive: true, force: true });
   }
