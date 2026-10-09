@@ -103,7 +103,7 @@ describe('cloning a project (HTTP)', () => {
   it.each([
     ['http://github.com/a/b', 'https'],
     ['https://user:token@github.com/a/b', 'user name'],
-    ['git@github.com:a/b.git', 'not valid'],
+    ['git@github.com:a/b.git', 'https'],
   ])('refuses %s and creates nothing', async (url, message) => {
     const refused = await clone(url);
     expect(refused.status).toBe(400);

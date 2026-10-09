@@ -17,6 +17,7 @@
     "migration:generate": "nest build && node --env-file-if-exists=.env ../../node_modules/typeorm/cli.js migration:generate -d dist/database/data-source.js",
     "migration:run": "nest build && node --env-file-if-exists=.env ../../node_modules/typeorm/cli.js migration:run -d dist/database/data-source.js",
     "migration:revert": "nest build && node --env-file-if-exists=.env ../../node_modules/typeorm/cli.js migration:revert -d dist/database/data-source.js",
+    "openapi:export": "nest build && node --env-file-if-exists=.env dist/openapi-export.js ../web/openapi.json",
     "typecheck": "tsc --noEmit",
     "test:db": "vitest run --project db",
     "format:check": "prettier --check ."

@@ -1,0 +1,137 @@
+@import 'tailwindcss';
+@import '@fontsource/outfit/400.css';
+@import '@fontsource/outfit/500.css';
+@import '@fontsource/outfit/600.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+
+/*
+ * Design tokens. Values follow the neutral dark and "light plus" themes of OpenHands (MIT, v1.25.0), see DESIGN.md.
+ * Dark is the default; the light set applies when the system asks for it or data-theme="light" is set.
+ */
+:root {
+  --scale-50: #f7f7f7;
+  --scale-100: #ececec;
+  --scale-200: #dcdcdc;
+  --scale-300: #bebebe;
+  --scale-400: #979797;
+  --scale-500: #737373;
+  --scale-600: #565656;
+  --scale-700: #404040;
+  --scale-800: #313131;
+  --scale-900: #282828;
+  --scale-925: #202020;
+  --scale-950: #181818;
+  --scale-975: #101010;
+
+  --oh-background: var(--scale-950);
+  --oh-foreground: var(--scale-100);
+  --oh-surface: var(--scale-925);
+  --oh-surface-raised: var(--scale-900);
+  --oh-surface-deep: var(--scale-975);
+  --oh-muted: var(--scale-400);
+  --oh-contrast: #ffffff;
+  --oh-contrast-foreground: #000000;
+  --oh-border: var(--scale-700);
+  --oh-border-subtle: var(--scale-800);
+  --oh-hover: var(--scale-800);
+  --oh-active: var(--scale-800);
+  --oh-primary: #c9b974;
+  --oh-danger: #e76a5e;
+  --oh-success: #1fbd53;
+  --oh-warning: #c9b974;
+  --oh-plan: #4a67bd;
+  --oh-plan-border: #597ff4;
+  --oh-radius: 8px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --oh-background: #ffffff;
+    --oh-foreground: #1f1f1f;
+    --oh-surface: #f3f3f3;
+    --oh-surface-raised: #eeeeee;
+    --oh-surface-deep: #e8e8e8;
+    --oh-muted: #616161;
+    --oh-contrast: #1f1f1f;
+    --oh-contrast-foreground: #ffffff;
+    --oh-border: #d4d4d4;
+    --oh-border-subtle: #e5e5e5;
+    --oh-hover: #e5e5e5;
+    --oh-active: #e8e8e8;
+    --oh-primary: #007acc;
+    --oh-danger: #d13438;
+    --oh-success: #16825d;
+    --oh-warning: #bf8803;
+  }
+}
+
+:root[data-theme='light'] {
+  --oh-background: #ffffff;
+  --oh-foreground: #1f1f1f;
+  --oh-surface: #f3f3f3;
+  --oh-surface-raised: #eeeeee;
+  --oh-surface-deep: #e8e8e8;
+  --oh-muted: #616161;
+  --oh-contrast: #1f1f1f;
+  --oh-contrast-foreground: #ffffff;
+  --oh-border: #d4d4d4;
+  --oh-border-subtle: #e5e5e5;
+  --oh-hover: #e5e5e5;
+  --oh-active: #e8e8e8;
+  --oh-primary: #007acc;
+  --oh-danger: #d13438;
+  --oh-success: #16825d;
+  --oh-warning: #bf8803;
+}
+
+@theme inline {
+  --color-base: var(--oh-background);
+  --color-foreground: var(--oh-foreground);
+  --color-surface: var(--oh-surface);
+  --color-raised: var(--oh-surface-raised);
+  --color-deep: var(--oh-surface-deep);
+  --color-muted: var(--oh-muted);
+  --color-contrast: var(--oh-contrast);
+  --color-on-contrast: var(--oh-contrast-foreground);
+  --color-line: var(--oh-border);
+  --color-line-subtle: var(--oh-border-subtle);
+  --color-hover: var(--oh-hover);
+  --color-active: var(--oh-active);
+  --color-primary: var(--oh-primary);
+  --color-danger: var(--oh-danger);
+  --color-success: var(--oh-success);
+  --color-warning: var(--oh-warning);
+  --color-plan: var(--oh-plan);
+  --color-plan-line: var(--oh-plan-border);
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --radius-field: var(--oh-radius);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--oh-background);
+  color: var(--oh-foreground);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thin scrollbars like the template's .custom-scrollbar */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--oh-border) transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--oh-contrast);
+  outline-offset: 2px;
+}

@@ -20,6 +20,9 @@
     "check": "npm run format:check && npm run typecheck && npm run lint && npm run deps && npm run dead-code",
     "test": "npm test --workspaces --if-present && node --test \".claude/hooks/*.test.mjs\" \"scripts/*.test.mjs\"",
     "test:db": "npm run test:db --workspaces --if-present",
+    "api:types": "npm run openapi:export -w @coding-agent/api && npm run api:types -w @coding-agent/web",
+    "dev:api": "npm run start:dev -w @coding-agent/api",
+    "dev:web": "npm run dev -w @coding-agent/web",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
     "prepare": "husky",
@@ -32,6 +35,7 @@
     "knip": "^6.40.0",
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.9",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.1"
   }
 }

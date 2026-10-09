@@ -3,6 +3,7 @@ import type { HistoryEntry, ModelProvider, TokenUsage } from '../model/model-pro
 
 export type RunEvent =
   | { type: 'run_started' }
+  | { type: 'user_message'; text: string }
   | { type: 'assistant_message'; text: string }
   | { type: 'tool_call'; callId: string; name: string; args: unknown }
   | { type: 'approval_requested'; callId: string; name: string; args: unknown; preview: string }

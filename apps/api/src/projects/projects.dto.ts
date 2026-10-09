@@ -32,3 +32,25 @@ export class ProjectDto {
   createdAt!: Date;
   updatedAt!: Date;
 }
+
+export class FileEntryDto {
+  name!: string;
+  /** Path relative to the project root. */
+  path!: string;
+  type!: 'file' | 'directory' | 'symlink';
+  /** Only for files. */
+  size?: number;
+}
+
+export class FileListDto {
+  entries!: FileEntryDto[];
+  /** True when the folder has more entries than are returned. */
+  truncated!: boolean;
+}
+
+export class FileContentDto {
+  path!: string;
+  content!: string;
+  /** True when the file is larger than the part that is returned. */
+  truncated!: boolean;
+}

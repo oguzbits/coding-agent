@@ -109,6 +109,7 @@ export class RunsService implements OnApplicationBootstrap {
         .save({ conversationId, state: 'running', pendingApproval: null });
       active.runId = run.id;
       await this.events.append(conversationId, run.id, { type: 'run_started' });
+      await this.events.append(conversationId, run.id, { type: 'user_message', text });
       void this.execute(userId, conversation, active, history, prepared).finally(() => {
         this.active.delete(userId);
         finish();

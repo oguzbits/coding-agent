@@ -141,9 +141,15 @@ describe('conversations and runs (HTTP, fake model)', () => {
       await waitForState(id, 'finished');
 
       const stored = await events(id);
-      expect(stored.map((event) => event.seq)).toEqual([1, 2, 3]);
-      expect(stored.map((event) => event.type)).toEqual(['run_started', 'assistant_message', 'run_finished']);
-      expect(stored[1].payload).toMatchObject({ text: 'You said: hello' });
+      expect(stored.map((event) => event.seq)).toEqual([1, 2, 3, 4]);
+      expect(stored.map((event) => event.type)).toEqual([
+        'run_started',
+        'user_message',
+        'assistant_message',
+        'run_finished',
+      ]);
+      expect(stored[1].payload).toMatchObject({ text: 'hello' });
+      expect(stored[2].payload).toMatchObject({ text: 'You said: hello' });
 
       const messages = await dataSource.query(
         'SELECT role, parts FROM messages WHERE conversation_id = $1 ORDER BY id',
@@ -185,12 +191,13 @@ describe('conversations and runs (HTTP, fake model)', () => {
       const stored = await events(id);
       expect(stored.map((event) => event.type)).toEqual([
         'run_started',
+        'user_message',
         'tool_call',
         'tool_result',
         'assistant_message',
         'run_finished',
       ]);
-      expect(stored[2].payload).toMatchObject({ isError: false, output: '     1\tfile content' });
+      expect(stored[3].payload).toMatchObject({ isError: false, output: '     1\tfile content' });
     });
 
     it('gives the model an error instead of a protected file', async () => {
@@ -422,10 +429,10 @@ describe('conversations and runs (HTTP, fake model)', () => {
       const id = await createConversation(alice);
       await send(alice, id, 'hello');
       await waitForState(id, 'finished');
-      const stream = await readStream(id, { 'Last-Event-ID': '1' }, (text) => ids(text).length >= 2);
+      const stream = await readStream(id, { 'Last-Event-ID': '2' }, (text) => ids(text).length >= 2);
       expect(stream.status).toBe(200);
       expect(stream.type).toMatch(/text\/event-stream/);
-      expect(ids(stream.text)).toEqual([2, 3]);
+      expect(ids(stream.text)).toEqual([3, 4]);
       expect(stream.text).toContain('event: assistant_message');
       const data = [...stream.text.matchAll(/^data: (.*)$/gm)].map((match) => JSON.parse(match[1]));
       expect(data[0]).toEqual({ type: 'assistant_message', text: 'You said: hello' });
@@ -435,8 +442,8 @@ describe('conversations and runs (HTTP, fake model)', () => {
       const id = await createConversation(alice);
       await send(alice, id, 'hello');
       await waitForState(id, 'finished');
-      const stream = await readStream(id, {}, (text) => ids(text).length >= 3);
-      expect(ids(stream.text)).toEqual([1, 2, 3]);
+      const stream = await readStream(id, {}, (text) => ids(text).length >= 4);
+      expect(ids(stream.text)).toEqual([1, 2, 3, 4]);
     });
 
     it('delivers live events to an open stream, without gaps or duplicates', async () => {
@@ -445,7 +452,7 @@ describe('conversations and runs (HTTP, fake model)', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
       await send(alice, id, 'hello');
       const stream = await reading;
-      expect(ids(stream.text)).toEqual([1, 2, 3]);
+      expect(ids(stream.text)).toEqual([1, 2, 3, 4]);
     });
 
     it('refuses a stream for a conversation of someone else', async () => {

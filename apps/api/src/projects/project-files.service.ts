@@ -7,14 +7,8 @@ import { readTextFile, statOrUndefined } from '../agent/tools/file-access.js';
 import { Workspace } from '../agent/tools/workspace.js';
 import { ToolError } from '../agent/types.js';
 import type { Env } from '../config/env.validation.js';
+import type { FileContentDto, FileEntryDto, FileListDto } from './projects.dto.js';
 import { ProjectsService } from './projects.service.js';
-
-export interface FileEntry {
-  name: string;
-  path: string;
-  type: 'file' | 'directory' | 'symlink';
-  size?: number;
-}
 
 const MAX_LISTED_ENTRIES = 2000;
 /** Left out of the download: large, rebuilt by an install, and not what people want to take with them. */
@@ -28,7 +22,7 @@ export class ProjectFilesService {
     private readonly config: ConfigService<Env, true>,
   ) {}
 
-  async list(userId: string, projectId: string, relative = '.'): Promise<{ entries: FileEntry[]; truncated: boolean }> {
+  async list(userId: string, projectId: string, relative = '.'): Promise<FileListDto> {
     const workspace = await this.workspaceOf(userId, projectId);
     const directory = await this.resolve(workspace, relative);
     const info = await statOrUndefined(directory);
@@ -39,10 +33,10 @@ export class ProjectFilesService {
     const visible = dirents.filter(
       (entry) => !workspace.isProtected(workspace.display(path.join(directory, entry.name))),
     );
-    const entries: FileEntry[] = [];
+    const entries: FileEntryDto[] = [];
     for (const dirent of visible.slice(0, MAX_LISTED_ENTRIES)) {
       const absolute = path.join(directory, dirent.name);
-      const entry: FileEntry = { name: dirent.name, path: workspace.display(absolute), type: 'file' };
+      const entry: FileEntryDto = { name: dirent.name, path: workspace.display(absolute), type: 'file' };
       if (dirent.isDirectory()) entry.type = 'directory';
       else if (dirent.isSymbolicLink()) entry.type = 'symlink';
       else entry.size = (await lstat(absolute)).size;
@@ -54,11 +48,7 @@ export class ProjectFilesService {
     return { entries, truncated: visible.length > MAX_LISTED_ENTRIES };
   }
 
-  async read(
-    userId: string,
-    projectId: string,
-    relative: string,
-  ): Promise<{ path: string; content: string; truncated: boolean }> {
+  async read(userId: string, projectId: string, relative: string): Promise<FileContentDto> {
     const workspace = await this.workspaceOf(userId, projectId);
     const target = await this.resolve(workspace, relative);
     if (!(await statOrUndefined(target))) throw new NotFoundException('File not found');

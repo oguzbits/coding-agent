@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query, Res } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiProduces } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import type { Project } from './project.entity.js';
-import { CreateProjectDto, ProjectDto, RenameProjectDto } from './projects.dto.js';
+import { CreateProjectDto, FileContentDto, FileListDto, ProjectDto, RenameProjectDto } from './projects.dto.js';
 import { ProjectFilesService } from './project-files.service.js';
 import { ProjectsService } from './projects.service.js';
 
@@ -51,6 +51,7 @@ export class ProjectsController {
   }
 
   @Get(':id/files')
+  @ApiOkResponse({ type: FileListDto })
   listFiles(
     @CurrentUser() user: Express.User,
     @Param('id', ParseUUIDPipe) id: string,
@@ -60,6 +61,7 @@ export class ProjectsController {
   }
 
   @Get(':id/files/content')
+  @ApiOkResponse({ type: FileContentDto })
   fileContent(
     @CurrentUser() user: Express.User,
     @Param('id', ParseUUIDPipe) id: string,
@@ -69,6 +71,7 @@ export class ProjectsController {
   }
 
   @Get(':id/download')
+  @ApiProduces('application/zip')
   async download(
     @CurrentUser() user: Express.User,
     @Param('id', ParseUUIDPipe) id: string,

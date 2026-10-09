@@ -7,3 +7,5 @@ spikes/fixtures
 .notes
 spikes
 docs
+apps/web/openapi.json
+apps/web/src/api/schema.d.ts

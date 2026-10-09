@@ -12,7 +12,7 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
-import { ApiAcceptedResponse, ApiOkResponse, ApiProduces } from '@nestjs/swagger';
+import { ApiAcceptedResponse, ApiExtraModels, ApiOkResponse, ApiProduces, getSchemaPath } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { CurrentUser } from '../auth/current-user.decorator.js';
@@ -27,6 +27,7 @@ import {
 } from './conversations.dto.js';
 import { ConversationsService } from './conversations.service.js';
 import type { Conversation } from './conversation.entity.js';
+import { RUN_EVENT_DTOS } from './run-event.dto.js';
 import { RunEventsService } from './run-events.service.js';
 import { RunsService } from './runs.service.js';
 
@@ -41,6 +42,7 @@ const view = (conversation: Conversation, activeRun?: ConversationDto['activeRun
 });
 
 @Controller('conversations')
+@ApiExtraModels(...RUN_EVENT_DTOS)
 export class ConversationsController {
   constructor(
     private readonly conversations: ConversationsService,
@@ -121,6 +123,12 @@ export class ConversationsController {
   /** Server-sent events. Send `Last-Event-ID` (the browser does it on reconnect) to receive only newer events. */
   @Get(':id/events')
   @ApiProduces('text/event-stream')
+  @ApiOkResponse({
+    description: 'A stream of events. The `data` of each event is JSON of one of these types, `event` names the type.',
+    content: {
+      'text/event-stream': { schema: { oneOf: RUN_EVENT_DTOS.map((dto) => ({ $ref: getSchemaPath(dto) })) } },
+    },
+  })
   async stream(
     @CurrentUser() user: Express.User,
     @Param('id', ParseUUIDPipe) id: string,

@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "oxc", "unicorn", "react"],
+  "env": { "browser": true },
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "typescript/ban-ts-comment": "error",
+    "no-empty": "error",
+    "no-console": "error",
+    "complexity": ["error", 10],
+    "max-lines": ["error", { "max": 300, "skipBlankLines": true, "skipComments": true }],
+    "max-lines-per-function": ["error", { "max": 80, "skipBlankLines": true, "skipComments": true }]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "rules": { "max-lines-per-function": "off", "max-lines": "off" }
+    },
+    {
+      "files": ["src/api/schema.d.ts"],
+      "rules": { "max-lines": "off" }
+    }
+  ]
+}

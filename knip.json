@@ -6,8 +6,12 @@
       "project": [".claude/hooks/*.mjs", "scripts/*.mjs"]
     },
     "apps/api": {
-      "entry": ["src/main.ts", "src/database/data-source.ts", "src/database/migrations/*.ts"],
+      "entry": ["src/main.ts", "src/openapi-export.ts", "src/database/data-source.ts", "src/database/migrations/*.ts"],
       "project": ["src/**/*.ts"]
+    },
+    "apps/web": {
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignoreDependencies": ["@fontsource/outfit", "@fontsource/ibm-plex-mono", "tailwindcss"]
     }
   }
 }

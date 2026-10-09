@@ -3,15 +3,8 @@ import { ApiOkResponse } from '@nestjs/swagger';
 import { CurrentUser } from '../../auth/current-user.decorator.js';
 import { ModelGateway } from '../model.gateway.js';
 import { pacificDay } from '../rate-limit/rate-limiter.js';
+import { UsageDto } from './usage.dto.js';
 import { TypeOrmUsageStore } from './usage.stores.js';
-
-class UsageDto {
-  model!: string;
-  day!: string;
-  requests!: number;
-  tokens!: number;
-  limits!: { requestsPerMinute: number; tokensPerMinute: number; requestsPerDay: number };
-}
 
 /** What this application has spent today. Google reports no remaining quota, and the same key may be used elsewhere. */
 @Controller('usage')
