@@ -66,7 +66,7 @@ import { TypeOrmCallLog, TypeOrmUsageStore } from './usage/usage.stores.js';
           users,
           limiter,
           new GeminiProvider(),
-          new DemoProvider(),
+          new DemoProvider(config.get('FAKE_MODEL_DELAY_MS', { infer: true })),
         ),
     },
   ],

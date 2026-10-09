@@ -7,6 +7,7 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 - Slice 1: spike with Flash-Lite, see [SPIKE-ERGEBNISSE.md](SPIKE-ERGEBNISSE.md)
 - Slice 2: NestJS scaffold (config, Postgres, migrations proven in ESM, logs with request ids, host/origin check, checks, hooks)
 - Slice 3: accounts (register, login, logout, change password, profile with encrypted Gemini key)
+- Slice 9: health (live/ready), Prometheus `/metrics` (needs `METRICS_TOKEN`), OpenTelemetry spans (export with `OTEL_EXPORTER_OTLP_ENDPOINT`), k6 scenarios in `load/` (`npm run load:server`, `npm run load -- <scenario>`), results and the single-instance decision in `docs/LASTTESTS.md`
 - Slice 8: confirm email and reset password (single-use hashed tokens, `MailSender` port with a logging default), unconfirmed accounts cannot start runs (`REQUIRE_EMAIL_CONFIRMATION`), list and end own logins, delete account; web pages and settings sections for all of it
 - Slices 4–6b: agent loop with SSE, Gemini adapter, project files and clone, file tools with approval and modes, run_command
 - Slice 7b: Playwright end-to-end paths (sign up, approval, file view; reload during a run) against the real API with the fake provider, `npm run e2e` (needs `npm run db:up`; uses database `coding_agent_e2e`)
@@ -16,9 +17,13 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 ## Next
 
 - Slice 7b rest: comparison against the template (`docs/DESIGN-ABGLEICH.md`), collapsed action groups, collapsed sidebar
-- Slice 9: operations (metrics, traces, health checks, k6 load tests, decision on several instances)
 
 ## Open
+
+- Load tests: stress to the breaking point, endurance run, then set thresholds; add a `load-smoke` job to the (unpushed) CI workflow.
+- A run waiting for an approval has no time limit and blocks the user's single active run.
+- No span for the HTTP request itself (auto-instrumentation does not hook into ESM reliably); spans cover run, model call and tool call.
+- The SSE channel gauge has no HTTP test; the gauge itself is unit-tested.
 
 - CI workflow (`.github/workflows/ci.yml`, now with an `e2e` job) exists locally but is not pushed: the GitHub token lacks the `workflow` scope.
   Fix: `gh auth refresh -h github.com -s workflow`, then remove `.github/workflows/` from `.git/info/exclude` and commit it.

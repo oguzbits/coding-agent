@@ -25,7 +25,13 @@ const lastToolResult = (history: HistoryEntry[]): string | undefined => {
  * `read <path>`, `write <path> <content>`, `run <command>`, `slow` (waits, abortable), anything else is echoed.
  */
 export class DemoProvider extends GeminiPartFormat {
+  /** `delayMs` makes every call wait first (abortable), to imitate the latency of a real model in load tests. */
+  constructor(private readonly delayMs = 0) {
+    super();
+  }
+
   async generate(request: ModelRequest, signal: AbortSignal): Promise<ModelTurn> {
+    if (this.delayMs > 0) await sleep(this.delayMs, signal);
     const usage = { promptTokens: request.history.length * 10, outputTokens: 5 };
     const result = lastToolResult(request.history);
     if (result !== undefined) return turnFromParts([{ text: `Done. Result: ${result.slice(0, 200)}` }], usage);

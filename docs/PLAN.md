@@ -439,6 +439,7 @@ Die Grundausstattung für Logs entsteht mit dem Gerüst in Slice 2, alles Weiter
     Ende-zu-Ende-Wege laufen in der CI.
 8. Mail-Abläufe: E-Mail bestätigen, Passwort zurücksetzen. Aktive Anmeldungen, Konto löschen.
 9. Betrieb: Metriken, Traces und Health-Checks, Lasttests mit k6, Engpässe beheben, Entscheidung über mehrere Instanzen
-   (siehe „Betrieb: Observability, Lasttests, Skalierung“).
+   (siehe „Betrieb: Observability, Lasttests, Skalierung“). Stand 2026-10-09: umgesetzt, Messung und Entscheidung in
+   `docs/LASTTESTS.md`.
 10. Nach dem MVP: Sandbox, dann offene Registrierung und Deploy (vorher: Keys aus dem bezahlten Tier wegen der Bedingung für den
    EWR, Liste erlaubter Hosts beim Klonen); Kontext verdichten.

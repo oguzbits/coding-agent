@@ -120,6 +120,12 @@ export class Env {
   @IsIn(MODEL_PROVIDERS)
   MODEL_PROVIDER: (typeof MODEL_PROVIDERS)[number] = 'fake';
 
+  /** Makes the fake model wait this long per call. For load tests; 0 in normal use. */
+  @Transform(toNumber)
+  @IsInt()
+  @Min(0)
+  FAKE_MODEL_DELAY_MS = 0;
+
   /** Used until the user sets a model in the profile. Model IDs live here and nowhere else in the code. */
   @IsString()
   @IsNotEmpty()

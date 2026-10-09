@@ -52,4 +52,19 @@ describe('DemoProvider', () => {
     controller.abort();
     await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
   });
+
+  describe('with a delay per call', () => {
+    it('waits before answering, as a stand-in for the latency of a real model', async () => {
+      const started = Date.now();
+      await new DemoProvider(60).generate(request(said('hello')), signal);
+      expect(Date.now() - started).toBeGreaterThanOrEqual(50);
+    });
+
+    it('stops waiting when the run is aborted', async () => {
+      const abort = new AbortController();
+      const pending = new DemoProvider(60_000).generate(request(said('hello')), abort.signal);
+      abort.abort();
+      await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    });
+  });
 });
