@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
 const MIN_PASSWORD = 12;
 const MAX_PASSWORD = 128;
@@ -48,4 +48,36 @@ export class AccountDto {
 
   @ApiProperty()
   email!: string;
+
+  @ApiProperty({ description: 'False until the link from the confirmation mail was used.' })
+  emailConfirmed!: boolean;
+}
+
+export class ConfirmEmailDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
+  token!: string;
+}
+
+export class ForgotPasswordDto {
+  @ApiProperty()
+  @IsEmail()
+  @MaxLength(254)
+  email!: string;
+}
+
+export class ResetPasswordDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
+  token!: string;
+
+  @ApiProperty({ minLength: MIN_PASSWORD, maxLength: MAX_PASSWORD })
+  @IsString()
+  @MinLength(MIN_PASSWORD)
+  @MaxLength(MAX_PASSWORD)
+  newPassword!: string;
 }

@@ -2,6 +2,7 @@ import { Accounts1791501450017 } from './1791501450017-Accounts.js';
 import { AuthSessions1791501450018 } from './1791501450018-AuthSessions.js';
 import { Conversations1791502208120 } from './1791502208120-Conversations.js';
 import { ModelUsage1791502763185 } from './1791502763185-ModelUsage.js';
+import { AccountTokens1791510006673 } from './1791510006673-AccountTokens.js';
 import { Projects1791503027093 } from './1791503027093-Projects.js';
 
 export const MIGRATIONS = [
@@ -10,4 +11,5 @@ export const MIGRATIONS = [
   Conversations1791502208120,
   ModelUsage1791502763185,
   Projects1791503027093,
+  AccountTokens1791510006673,
 ];

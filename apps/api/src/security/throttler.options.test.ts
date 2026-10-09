@@ -17,6 +17,11 @@ class DummyController {
     return { ok: true };
   }
 
+  @Post('auth/forgot-password')
+  forgot() {
+    return { ok: true };
+  }
+
   @Get('other')
   other() {
     return { ok: true };
@@ -52,6 +57,13 @@ describe('throttler options', () => {
   it('counts login and register together against the auth limit', async () => {
     await request(app.getHttpServer()).post('/api/auth/login');
     await request(app.getHttpServer()).post('/api/auth/register');
+    expect((await request(app.getHttpServer()).post('/api/auth/login')).status).toBe(429);
+  });
+
+  it('also counts the mail and token routes against the auth limit', async () => {
+    await request(app.getHttpServer()).post('/api/auth/forgot-password');
+    await request(app.getHttpServer()).post('/api/auth/forgot-password');
+    expect((await request(app.getHttpServer()).post('/api/auth/forgot-password')).status).toBe(429);
     expect((await request(app.getHttpServer()).post('/api/auth/login')).status).toBe(429);
   });
 

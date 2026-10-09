@@ -54,9 +54,9 @@ describe('accounts and login (HTTP)', () => {
     expect((await post(a, '/api/auth/register', { email, password })).status).toBe(202);
     const login = await post(a, '/api/auth/login', { email: 'ALICE@example.com', password });
     expect(login.status).toBe(200);
-    expect(login.body).toEqual({ id: expect.any(String), email });
+    expect(login.body).toEqual({ id: expect.any(String), email, emailConfirmed: false });
     const me = await get(a, '/api/auth/me');
-    expect(me.body).toEqual({ id: login.body.id, email });
+    expect(me.body).toEqual({ id: login.body.id, email, emailConfirmed: false });
     expect(JSON.stringify(me.body)).not.toMatch(/hash|argon/i);
   });
 

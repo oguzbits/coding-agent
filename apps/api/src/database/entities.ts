@@ -1,3 +1,4 @@
+import { AccountToken } from '../auth/account-token.entity.js';
 import { Conversation } from '../conversations/conversation.entity.js';
 import { Message } from '../conversations/message.entity.js';
 import { RunEventRecord } from '../conversations/run-event.entity.js';
@@ -18,4 +19,5 @@ export const ENTITIES = [
   RunEventRecord,
   UsageDaily,
   ModelCall,
+  AccountToken,
 ];

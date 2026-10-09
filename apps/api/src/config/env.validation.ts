@@ -75,6 +75,21 @@ export class Env {
   @Min(1)
   SESSION_MAX_HOURS = 168;
 
+  /** Unconfirmed accounts can log in, but cannot start a run. */
+  @Transform(toBoolean)
+  @IsBoolean()
+  REQUIRE_EMAIL_CONFIRMATION = true;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  CONFIRM_TOKEN_HOURS = 24;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  RESET_TOKEN_MINUTES = 60;
+
   @Transform(toNumber)
   @IsInt()
   @Min(1)

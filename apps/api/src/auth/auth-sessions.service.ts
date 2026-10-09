@@ -12,4 +12,9 @@ export class AuthSessionsService {
       keepSessionId,
     ]);
   }
+
+  /** Ends every login of the user, for example after the password was reset. */
+  async endAll(userId: string): Promise<void> {
+    await this.dataSource.query(`DELETE FROM auth_sessions WHERE (sess -> 'passport') ->> 'user' = $1`, [userId]);
+  }
 }

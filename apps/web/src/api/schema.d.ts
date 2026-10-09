@@ -4,1097 +4,1234 @@
  */
 
 export interface paths {
-  '/api/auth/register': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post: operations['AuthController_register'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/auth/login': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post: operations['AuthController_login'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/auth/logout': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post: operations['AuthController_logout'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/auth/me': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AuthController_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get: operations['AuthController_me'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/auth/change-password': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/confirm-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_confirmEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post: operations['AuthController_changePassword'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/users/me/settings': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/resend-confirmation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_resendConfirmation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get: operations['UsersController_settings'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/users/me/gemini-key': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_forgotPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put: operations['UsersController_setGeminiKey'];
-    post?: never;
-    delete: operations['UsersController_clearGeminiKey'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/users/me/model': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put: operations['UsersController_setModel'];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/conversations': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/auth/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_changePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get: operations['ConversationsController_list'];
-    put?: never;
-    post: operations['ConversationsController_create'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/conversations/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/users/me/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UsersController_settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get: operations['ConversationsController_get'];
-    put?: never;
-    post?: never;
-    delete: operations['ConversationsController_remove'];
-    options?: never;
-    head?: never;
-    patch: operations['ConversationsController_update'];
-    trace?: never;
-  };
-  '/api/conversations/{id}/messages': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/users/me/gemini-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UsersController_setGeminiKey"];
+        post?: never;
+        delete: operations["UsersController_clearGeminiKey"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post: operations['ConversationsController_send'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/conversations/{id}/approvals': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/users/me/model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UsersController_setModel"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post: operations['ConversationsController_approve'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/conversations/{id}/abort': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ConversationsController_list"];
+        put?: never;
+        post: operations["ConversationsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post: operations['ConversationsController_abort'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/conversations/{id}/events': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/conversations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ConversationsController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["ConversationsController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["ConversationsController_update"];
+        trace?: never;
     };
-    get: operations['ConversationsController_stream'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/usage': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/conversations/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ConversationsController_send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get: operations['UsageController_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/projects': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/conversations/{id}/approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ConversationsController_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get: operations['ProjectsController_list'];
-    put?: never;
-    post: operations['ProjectsController_create'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/projects/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/conversations/{id}/abort": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ConversationsController_abort"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete: operations['ProjectsController_remove'];
-    options?: never;
-    head?: never;
-    patch: operations['ProjectsController_rename'];
-    trace?: never;
-  };
-  '/api/projects/{id}/files': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/conversations/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ConversationsController_stream"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get: operations['ProjectsController_listFiles'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/projects/{id}/files/content': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UsageController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get: operations['ProjectsController_fileContent'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/projects/{id}/download': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProjectsController_list"];
+        put?: never;
+        post: operations["ProjectsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get: operations['ProjectsController_download'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
+    "/api/projects/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["ProjectsController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["ProjectsController_rename"];
+        trace?: never;
+    };
+    "/api/projects/{id}/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProjectsController_listFiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{id}/files/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProjectsController_fileContent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProjectsController_download"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    RegisterDto: {
-      /**
-       * Format: email
-       * @example alice@example.com
-       */
-      email: string;
-      password: string;
+    schemas: {
+        RegisterDto: {
+            /**
+             * Format: email
+             * @example alice@example.com
+             */
+            email: string;
+            password: string;
+        };
+        LoginDto: {
+            /** Format: email */
+            email: string;
+            password: string;
+        };
+        AccountDto: {
+            id: string;
+            email: string;
+            /** @description False until the link from the confirmation mail was used. */
+            emailConfirmed: boolean;
+        };
+        ConfirmEmailDto: {
+            token: string;
+        };
+        ForgotPasswordDto: {
+            /** Format: email */
+            email: string;
+        };
+        ResetPasswordDto: {
+            token: string;
+            newPassword: string;
+        };
+        ChangePasswordDto: {
+            currentPassword: string;
+            newPassword: string;
+        };
+        SettingsDto: {
+            hasGeminiKey: boolean;
+            /** @description Last four characters; the key itself is never returned. */
+            geminiKeyLast4: string | null;
+            modelName: string | null;
+            limits: {
+                requestsPerMinute: number | null;
+                tokensPerMinute: number | null;
+                requestsPerDay: number | null;
+            };
+        };
+        SetGeminiKeyDto: {
+            apiKey: string;
+        };
+        SetModelSettingsDto: {
+            modelName?: string | null;
+            requestsPerMinute?: number | null;
+            tokensPerMinute?: number | null;
+            requestsPerDay?: number | null;
+        };
+        RunStartedEventDto: {
+            /** @enum {string} */
+            type: "run_started";
+        };
+        UserMessageEventDto: {
+            /** @enum {string} */
+            type: "user_message";
+            text: string;
+        };
+        AssistantMessageEventDto: {
+            /** @enum {string} */
+            type: "assistant_message";
+            text: string;
+        };
+        ToolCallEventDto: {
+            /** @enum {string} */
+            type: "tool_call";
+            callId: string;
+            name: string;
+            args: {
+                [key: string]: unknown;
+            };
+        };
+        ApprovalRequestedEventDto: {
+            /** @enum {string} */
+            type: "approval_requested";
+            callId: string;
+            name: string;
+            args: {
+                [key: string]: unknown;
+            };
+            preview: string;
+        };
+        ApprovalResolvedEventDto: {
+            /** @enum {string} */
+            type: "approval_resolved";
+            callId: string;
+            approved: boolean;
+        };
+        ToolResultEventDto: {
+            /** @enum {string} */
+            type: "tool_result";
+            callId: string;
+            name: string;
+            isError: boolean;
+            output: string;
+        };
+        TokenUsageDto: {
+            promptTokens: number;
+            outputTokens: number;
+        };
+        RunFinishedEventDto: {
+            /** @enum {string} */
+            type: "run_finished";
+            steps: number;
+            usage: components["schemas"]["TokenUsageDto"];
+        };
+        RunAbortedEventDto: {
+            /** @enum {string} */
+            type: "run_aborted";
+        };
+        RunFailedEventDto: {
+            /** @enum {string} */
+            type: "run_failed";
+            /** @enum {string} */
+            code: "auth" | "rate_limit_minute" | "rate_limit_day" | "bad_request" | "unavailable" | "unknown" | "max_steps" | "repeated_failure" | "history_too_large" | "internal";
+            message: string;
+        };
+        CreateConversationDto: {
+            /** Format: uuid */
+            projectId: string;
+            title?: string;
+        };
+        ActiveRunDto: {
+            id: string;
+            state: string;
+            pendingApproval: {
+                callId: string;
+                name: string;
+                preview: string;
+            };
+        };
+        ConversationDto: {
+            activeRun?: components["schemas"]["ActiveRunDto"] | null;
+            id: string;
+            projectId: string;
+            title: string;
+            mode: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        UpdateConversationDto: {
+            /** @enum {string} */
+            mode?: "ask" | "auto_edit" | "plan";
+            title?: string;
+        };
+        SendMessageDto: {
+            text: string;
+        };
+        RunStartedDto: {
+            runId: string;
+        };
+        ApprovalDto: {
+            callId: string;
+            approved: boolean;
+        };
+        UsageLimitsDto: {
+            requestsPerMinute: number;
+            tokensPerMinute: number;
+            requestsPerDay: number;
+        };
+        UsageDto: {
+            model: string;
+            day: string;
+            requests: number;
+            tokens: number;
+            limits: components["schemas"]["UsageLimitsDto"];
+        };
+        CreateProjectDto: {
+            name: string;
+            cloneUrl?: string;
+        };
+        ProjectDto: {
+            id: string;
+            name: string;
+            origin: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        RenameProjectDto: {
+            name: string;
+        };
+        FileEntryDto: {
+            name: string;
+            path: string;
+            /** @enum {string} */
+            type: "file" | "directory" | "symlink";
+            size?: number;
+        };
+        FileListDto: {
+            entries: components["schemas"]["FileEntryDto"][];
+            truncated: boolean;
+        };
+        FileContentDto: {
+            path: string;
+            content: string;
+            truncated: boolean;
+        };
     };
-    LoginDto: {
-      /** Format: email */
-      email: string;
-      password: string;
-    };
-    AccountDto: {
-      id: string;
-      email: string;
-    };
-    ChangePasswordDto: {
-      currentPassword: string;
-      newPassword: string;
-    };
-    SettingsDto: {
-      hasGeminiKey: boolean;
-      /** @description Last four characters; the key itself is never returned. */
-      geminiKeyLast4: string | null;
-      modelName: string | null;
-      limits: {
-        requestsPerMinute: number | null;
-        tokensPerMinute: number | null;
-        requestsPerDay: number | null;
-      };
-    };
-    SetGeminiKeyDto: {
-      apiKey: string;
-    };
-    SetModelSettingsDto: {
-      modelName?: string | null;
-      requestsPerMinute?: number | null;
-      tokensPerMinute?: number | null;
-      requestsPerDay?: number | null;
-    };
-    RunStartedEventDto: {
-      /** @enum {string} */
-      type: 'run_started';
-    };
-    UserMessageEventDto: {
-      /** @enum {string} */
-      type: 'user_message';
-      text: string;
-    };
-    AssistantMessageEventDto: {
-      /** @enum {string} */
-      type: 'assistant_message';
-      text: string;
-    };
-    ToolCallEventDto: {
-      /** @enum {string} */
-      type: 'tool_call';
-      callId: string;
-      name: string;
-      args: {
-        [key: string]: unknown;
-      };
-    };
-    ApprovalRequestedEventDto: {
-      /** @enum {string} */
-      type: 'approval_requested';
-      callId: string;
-      name: string;
-      args: {
-        [key: string]: unknown;
-      };
-      preview: string;
-    };
-    ApprovalResolvedEventDto: {
-      /** @enum {string} */
-      type: 'approval_resolved';
-      callId: string;
-      approved: boolean;
-    };
-    ToolResultEventDto: {
-      /** @enum {string} */
-      type: 'tool_result';
-      callId: string;
-      name: string;
-      isError: boolean;
-      output: string;
-    };
-    TokenUsageDto: {
-      promptTokens: number;
-      outputTokens: number;
-    };
-    RunFinishedEventDto: {
-      /** @enum {string} */
-      type: 'run_finished';
-      steps: number;
-      usage: components['schemas']['TokenUsageDto'];
-    };
-    RunAbortedEventDto: {
-      /** @enum {string} */
-      type: 'run_aborted';
-    };
-    RunFailedEventDto: {
-      /** @enum {string} */
-      type: 'run_failed';
-      /** @enum {string} */
-      code:
-        | 'auth'
-        | 'rate_limit_minute'
-        | 'rate_limit_day'
-        | 'bad_request'
-        | 'unavailable'
-        | 'unknown'
-        | 'max_steps'
-        | 'repeated_failure'
-        | 'history_too_large'
-        | 'internal';
-      message: string;
-    };
-    CreateConversationDto: {
-      /** Format: uuid */
-      projectId: string;
-      title?: string;
-    };
-    ActiveRunDto: {
-      id: string;
-      state: string;
-      pendingApproval: {
-        callId: string;
-        name: string;
-        preview: string;
-      };
-    };
-    ConversationDto: {
-      activeRun?: components['schemas']['ActiveRunDto'] | null;
-      id: string;
-      projectId: string;
-      title: string;
-      mode: string;
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
-    };
-    UpdateConversationDto: {
-      /** @enum {string} */
-      mode?: 'ask' | 'auto_edit' | 'plan';
-      title?: string;
-    };
-    SendMessageDto: {
-      text: string;
-    };
-    RunStartedDto: {
-      runId: string;
-    };
-    ApprovalDto: {
-      callId: string;
-      approved: boolean;
-    };
-    UsageLimitsDto: {
-      requestsPerMinute: number;
-      tokensPerMinute: number;
-      requestsPerDay: number;
-    };
-    UsageDto: {
-      model: string;
-      day: string;
-      requests: number;
-      tokens: number;
-      limits: components['schemas']['UsageLimitsDto'];
-    };
-    CreateProjectDto: {
-      name: string;
-      cloneUrl?: string;
-    };
-    ProjectDto: {
-      id: string;
-      name: string;
-      origin: string;
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
-    };
-    RenameProjectDto: {
-      name: string;
-    };
-    FileEntryDto: {
-      name: string;
-      path: string;
-      /** @enum {string} */
-      type: 'file' | 'directory' | 'symlink';
-      size?: number;
-    };
-    FileListDto: {
-      entries: components['schemas']['FileEntryDto'][];
-      truncated: boolean;
-    };
-    FileContentDto: {
-      path: string;
-      content: string;
-      truncated: boolean;
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  AuthController_register: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RegisterDto'];
-      };
-    };
-    responses: {
-      202: {
-        headers: {
-          [name: string]: unknown;
+    AuthController_register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content?: never;
-      };
-    };
-  };
-  AuthController_login: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['LoginDto'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterDto"];
+            };
         };
-        content: {
-          'application/json': components['schemas']['AccountDto'];
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-      };
     };
-  };
-  AuthController_logout: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
+    AuthController_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content?: never;
-      };
-    };
-  };
-  AuthController_me: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginDto"];
+            };
         };
-        content: {
-          'application/json': components['schemas']['AccountDto'];
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountDto"];
+                };
+            };
         };
-      };
     };
-  };
-  AuthController_changePassword: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ChangePasswordDto'];
-      };
-    };
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
+    AuthController_logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content?: never;
-      };
-    };
-  };
-  UsersController_settings: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-        content: {
-          'application/json': components['schemas']['SettingsDto'];
+    };
+    AuthController_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-  };
-  UsersController_setGeminiKey: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SetGeminiKeyDto'];
-      };
-    };
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountDto"];
+                };
+            };
         };
-        content?: never;
-      };
     };
-  };
-  UsersController_clearGeminiKey: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
+    AuthController_confirmEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content?: never;
-      };
-    };
-  };
-  UsersController_setModel: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SetModelSettingsDto'];
-      };
-    };
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmEmailDto"];
+            };
         };
-        content?: never;
-      };
-    };
-  };
-  ConversationsController_list: {
-    parameters: {
-      query?: {
-        projectId?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-        content: {
-          'application/json': components['schemas']['ConversationDto'][];
+    };
+    AuthController_resendConfirmation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-  };
-  ConversationsController_create: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateConversationDto'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody?: never;
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-        content: {
-          'application/json': components['schemas']['ConversationDto'];
+    };
+    AuthController_forgotPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-  };
-  ConversationsController_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordDto"];
+            };
         };
-        content: {
-          'application/json': components['schemas']['ConversationDto'];
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-      };
     };
-  };
-  ConversationsController_remove: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
+    AuthController_resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content?: never;
-      };
-    };
-  };
-  ConversationsController_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateConversationDto'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordDto"];
+            };
         };
-        content: {
-          'application/json': components['schemas']['ConversationDto'];
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-      };
     };
-  };
-  ConversationsController_send: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SendMessageDto'];
-      };
-    };
-    responses: {
-      202: {
-        headers: {
-          [name: string]: unknown;
+    AuthController_changePassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          'application/json': components['schemas']['RunStartedDto'];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordDto"];
+            };
         };
-      };
-    };
-  };
-  ConversationsController_approve: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ApprovalDto'];
-      };
-    };
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-        content?: never;
-      };
     };
-  };
-  ConversationsController_abort: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
+    UsersController_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content?: never;
-      };
-    };
-  };
-  ConversationsController_stream: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description A stream of events. The `data` of each event is JSON of one of these types, `event` names the type. */
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsDto"];
+                };
+            };
         };
-        content: {
-          'text/event-stream':
-            | components['schemas']['RunStartedEventDto']
-            | components['schemas']['UserMessageEventDto']
-            | components['schemas']['AssistantMessageEventDto']
-            | components['schemas']['ToolCallEventDto']
-            | components['schemas']['ApprovalRequestedEventDto']
-            | components['schemas']['ApprovalResolvedEventDto']
-            | components['schemas']['ToolResultEventDto']
-            | components['schemas']['RunFinishedEventDto']
-            | components['schemas']['RunAbortedEventDto']
-            | components['schemas']['RunFailedEventDto'];
+    };
+    UsersController_setGeminiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-    };
-  };
-  UsageController_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetGeminiKeyDto"];
+            };
         };
-        content: {
-          'application/json': components['schemas']['UsageDto'];
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-      };
     };
-  };
-  ProjectsController_list: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    UsersController_clearGeminiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          'application/json': components['schemas']['ProjectDto'][];
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-      };
     };
-  };
-  ProjectsController_create: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateProjectDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
+    UsersController_setModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          'application/json': components['schemas']['ProjectDto'];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetModelSettingsDto"];
+            };
         };
-      };
-    };
-  };
-  ProjectsController_remove: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
-        content?: never;
-      };
     };
-  };
-  ProjectsController_rename: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RenameProjectDto'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    ConversationsController_list: {
+        parameters: {
+            query?: {
+                projectId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          'application/json': components['schemas']['ProjectDto'];
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationDto"][];
+                };
+            };
         };
-      };
     };
-  };
-  ProjectsController_listFiles: {
-    parameters: {
-      query?: {
-        path?: string;
-      };
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+    ConversationsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          'application/json': components['schemas']['FileListDto'];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateConversationDto"];
+            };
         };
-      };
-    };
-  };
-  ProjectsController_fileContent: {
-    parameters: {
-      query?: {
-        path?: unknown;
-      };
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationDto"];
+                };
+            };
         };
-        content: {
-          'application/json': components['schemas']['FileContentDto'];
+    };
+    ConversationsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
         };
-      };
-    };
-  };
-  ProjectsController_download: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationDto"];
+                };
+            };
         };
-        content?: never;
-      };
     };
-  };
+    ConversationsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ConversationsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateConversationDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationDto"];
+                };
+            };
+        };
+    };
+    ConversationsController_send: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunStartedDto"];
+                };
+            };
+        };
+    };
+    ConversationsController_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ConversationsController_abort: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ConversationsController_stream: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A stream of events. The `data` of each event is JSON of one of these types, `event` names the type. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["RunStartedEventDto"] | components["schemas"]["UserMessageEventDto"] | components["schemas"]["AssistantMessageEventDto"] | components["schemas"]["ToolCallEventDto"] | components["schemas"]["ApprovalRequestedEventDto"] | components["schemas"]["ApprovalResolvedEventDto"] | components["schemas"]["ToolResultEventDto"] | components["schemas"]["RunFinishedEventDto"] | components["schemas"]["RunAbortedEventDto"] | components["schemas"]["RunFailedEventDto"];
+                };
+            };
+        };
+    };
+    UsageController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageDto"];
+                };
+            };
+        };
+    };
+    ProjectsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDto"][];
+                };
+            };
+        };
+    };
+    ProjectsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProjectDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDto"];
+                };
+            };
+        };
+    };
+    ProjectsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProjectsController_rename: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenameProjectDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDto"];
+                };
+            };
+        };
+    };
+    ProjectsController_listFiles: {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileListDto"];
+                };
+            };
+        };
+    };
+    ProjectsController_fileContent: {
+        parameters: {
+            query?: {
+                path?: unknown;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileContentDto"];
+                };
+            };
+        };
+    };
+    ProjectsController_download: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
 }

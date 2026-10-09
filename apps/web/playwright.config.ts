@@ -10,6 +10,7 @@ const apiEnv = {
   MASTER_KEY: Buffer.alloc(32, 9).toString('base64'),
   MODEL_PROVIDER: 'fake',
   REGISTRATION_OPEN: 'true',
+  REQUIRE_EMAIL_CONFIRMATION: 'false',
   THROTTLE_AUTH_PER_MINUTE: '1000',
   WORKSPACES_DIR: process.env.E2E_WORKSPACES_DIR ?? '/tmp/coding-agent-e2e-workspaces',
   ALLOWED_ORIGINS: 'http://localhost:5173',

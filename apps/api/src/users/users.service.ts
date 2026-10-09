@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { KeyEncryption } from './key-encryption.js';
 import { PasswordHasher } from './password-hasher.js';
 import { UserSettings } from './user-settings.entity.js';
@@ -73,6 +73,10 @@ export class UsersService {
     return (await this.hasher.verify(user.passwordHash, password)) ? user : null;
   }
 
+  findByEmail(email: string): Promise<User | null> {
+    return this.users.findOneBy({ email: normalizeEmail(email) });
+  }
+
   findById(id: string): Promise<User | null> {
     return this.users.findOneBy({ id });
   }
@@ -82,6 +86,14 @@ export class UsersService {
     if (!user || !(await this.hasher.verify(user.passwordHash, currentPassword))) return false;
     await this.users.update({ id: userId }, { passwordHash: await this.hasher.hash(newPassword) });
     return true;
+  }
+
+  async markEmailConfirmed(userId: string): Promise<void> {
+    await this.users.update({ id: userId, emailVerifiedAt: IsNull() }, { emailVerifiedAt: new Date() });
+  }
+
+  async setPassword(userId: string, newPassword: string): Promise<void> {
+    await this.users.update({ id: userId }, { passwordHash: await this.hasher.hash(newPassword) });
   }
 
   async getSettings(userId: string): Promise<SettingsView> {

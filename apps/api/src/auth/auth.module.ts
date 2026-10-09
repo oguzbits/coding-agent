@@ -7,8 +7,13 @@ import passport from 'passport';
 import { DataSource } from 'typeorm';
 import type { PostgresDriver } from 'typeorm/driver/postgres/PostgresDriver.js';
 import type { Env } from '../config/env.validation.js';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { createThrottlerOptions } from '../security/throttler.options.js';
+import { MailModule } from '../mail/mail.module.js';
 import { UsersModule } from '../users/users.module.js';
+import { AccountFlowsService } from './account-flows.service.js';
+import { AccountToken } from './account-token.entity.js';
+import { AccountTokensService } from './account-tokens.service.js';
 import { AuthSessionsService } from './auth-sessions.service.js';
 import { AuthController } from './auth.controller.js';
 import './express-types.js';
@@ -23,6 +28,8 @@ type SessionStore = ReturnType<typeof createSessionStore>;
 @Module({
   imports: [
     UsersModule,
+    MailModule,
+    TypeOrmModule.forFeature([AccountToken]),
     PassportModule.register({ session: true }),
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
@@ -38,6 +45,8 @@ type SessionStore = ReturnType<typeof createSessionStore>;
     LocalStrategy,
     SessionSerializer,
     AuthSessionsService,
+    AccountTokensService,
+    AccountFlowsService,
     {
       provide: SESSION_STORE,
       inject: [DataSource],

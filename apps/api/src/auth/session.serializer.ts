@@ -15,6 +15,6 @@ export class SessionSerializer extends PassportSerializer {
 
   async deserializeUser(id: string, done: (error: Error | null, user?: Express.User | false) => void) {
     const user = await this.users.findById(id);
-    done(null, user ? { id: user.id, email: user.email } : false);
+    done(null, user ? { id: user.id, email: user.email, emailConfirmed: user.emailVerifiedAt !== null } : false);
   }
 }

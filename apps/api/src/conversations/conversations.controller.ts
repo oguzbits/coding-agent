@@ -11,11 +11,13 @@ import {
   Post,
   Query,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiAcceptedResponse, ApiExtraModels, ApiOkResponse, ApiProduces, getSchemaPath } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { CurrentUser } from '../auth/current-user.decorator.js';
+import { EmailConfirmedGuard } from '../auth/email-confirmed.guard.js';
 import type { Env } from '../config/env.validation.js';
 import {
   ApprovalDto,
@@ -93,6 +95,7 @@ export class ConversationsController {
   }
 
   @Post(':id/messages')
+  @UseGuards(EmailConfirmedGuard)
   @HttpCode(202)
   @ApiAcceptedResponse({ type: RunStartedDto })
   send(

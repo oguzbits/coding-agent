@@ -29,6 +29,7 @@ export default defineConfig({
             SESSION_SECRET: 'test-session-secret-test-session-secret',
             MASTER_KEY: Buffer.alloc(32, 7).toString('base64'),
             REGISTRATION_OPEN: 'true',
+            REQUIRE_EMAIL_CONFIRMATION: 'false',
             THROTTLE_AUTH_PER_MINUTE: '1000',
             WORKSPACES_DIR: path.join(os.tmpdir(), 'coding-agent-test-workspace'),
             PROJECT_FILE_VIEW_MAX_BYTES: '1000',
