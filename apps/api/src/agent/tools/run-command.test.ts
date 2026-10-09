@@ -94,6 +94,21 @@ describe('run_command', () => {
     expect(output).toMatch(/timed out/i);
   });
 
+  it('does not wait for a process that left the process group and keeps the output open', async () => {
+    const escape =
+      `node -e "const c = require('node:child_process').spawn('sleep', ['30'], { detached: true, stdio: 'inherit' }); ` +
+      `console.log('escaped=' + c.pid); c.unref()"`;
+    const started = Date.now();
+    const output = await run({ command: escape });
+    const pid = Number(/escaped=(\d+)/.exec(output)?.[1]);
+    try {
+      expect(Date.now() - started).toBeLessThan(3000);
+      expect(output).toMatch(/^Exit code: 0\n/);
+    } finally {
+      if (pid > 0) process.kill(pid, 'SIGKILL');
+    }
+  });
+
   it('stops when the run is aborted, with the whole process group', async () => {
     const abort = controller();
     const pending = run({ command: 'sleep 30 & echo child=$!; wait' }, abort.signal);

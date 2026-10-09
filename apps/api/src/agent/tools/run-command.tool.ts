@@ -77,20 +77,32 @@ function runInGroup(
       stream.setEncoding('utf8');
       stream.on('data', (chunk: string) => capture.push(chunk));
     }
-    // Whatever the shell left behind (background jobs) is not allowed to outlive it.
-    child.on('exit', () => killGroup(child.pid, 'SIGKILL'));
-    child.on('error', (error) => {
+    let exitTimer: NodeJS.Timeout | undefined;
+    const finish = (code: number | null, signal: NodeJS.Signals | null) => {
       clearTimeout(timer);
       clearTimeout(killTimer);
-      reject(error);
-    });
-    child.on('close', (code, signal) => {
-      clearTimeout(timer);
-      clearTimeout(killTimer);
+      clearTimeout(exitTimer);
       options.signal.removeEventListener('abort', stop);
       if (options.signal.aborted) return reject(abortError());
       resolve({ code, signal, timedOut, output: capture.result() });
+    };
+    child.on('exit', (code, signal) => {
+      // Whatever the shell left behind (background jobs) is not allowed to outlive it.
+      killGroup(child.pid, 'SIGKILL');
+      // A process that left the group (setsid) may keep the pipes open for good; stop waiting for it.
+      exitTimer = setTimeout(() => {
+        child.stdout.destroy();
+        child.stderr.destroy();
+        finish(code, signal);
+      }, options.limits.commandKillGraceMs);
     });
+    child.on('error', (error) => {
+      clearTimeout(timer);
+      clearTimeout(killTimer);
+      clearTimeout(exitTimer);
+      reject(error);
+    });
+    child.on('close', finish);
   });
 }
 
