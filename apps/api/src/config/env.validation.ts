@@ -113,6 +113,19 @@ export class Env {
   @MaxLength(512)
   METRICS_TOKEN?: string;
 
+  /** Both set: mails go out through the Resend API. Otherwise they only reach the log. */
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  @MaxLength(512)
+  MAIL_API_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(320)
+  MAIL_FROM?: string;
+
   @IsIn(LOG_LEVELS)
   LOG_LEVEL: (typeof LOG_LEVELS)[number] = 'log';
 
