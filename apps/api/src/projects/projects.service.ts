@@ -128,4 +128,10 @@ export class ProjectsService {
     await this.projects.delete({ id });
     await rm(this.directoryOf(userId, id), { recursive: true, force: true });
   }
+
+  /** Removes all projects of the user, then whatever else is left in the user's folder. */
+  async removeAll(userId: string): Promise<void> {
+    for (const project of await this.list(userId)) await this.remove(userId, project.id);
+    await rm(path.join(this.root, userId), { recursive: true, force: true });
+  }
 }

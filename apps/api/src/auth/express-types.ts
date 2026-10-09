@@ -3,6 +3,8 @@ declare module 'express-session' {
   interface SessionData {
     /** Epoch milliseconds of the login; the fixed maximum lifetime counts from here. */
     createdAt?: number;
+    /** What the browser called itself at login, shown in the list of logins. */
+    userAgent?: string;
   }
 }
 

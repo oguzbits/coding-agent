@@ -81,3 +81,24 @@ export class ResetPasswordDto {
   @MaxLength(MAX_PASSWORD)
   newPassword!: string;
 }
+
+export class LoginSessionDto {
+  @ApiProperty({ description: 'Names the login in the other session routes. Not the session id.' })
+  id!: string;
+
+  @ApiProperty({ type: String, format: 'date-time', nullable: true })
+  createdAt!: Date | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  userAgent!: string | null;
+
+  @ApiProperty({ description: 'True for the login that made this request.' })
+  current!: boolean;
+}
+
+export class DeleteAccountDto {
+  @ApiProperty()
+  @IsString()
+  @MaxLength(MAX_PASSWORD)
+  password!: string;
+}

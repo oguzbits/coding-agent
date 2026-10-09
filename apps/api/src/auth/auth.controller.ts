@@ -3,9 +3,12 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   HttpCode,
+  NotFoundException,
+  Param,
   Post,
   Req,
   Res,
@@ -16,13 +19,16 @@ import type { Request, Response } from 'express';
 import { promisify } from 'node:util';
 import { EmailTakenError, RegistrationClosedError, UsersService } from '../users/users.service.js';
 import { AuthSessionsService } from './auth-sessions.service.js';
+import { AccountDeletionService } from './account-deletion.service.js';
 import { AccountFlowsService } from './account-flows.service.js';
 import {
   AccountDto,
   ChangePasswordDto,
   ConfirmEmailDto,
+  DeleteAccountDto,
   ForgotPasswordDto,
   LoginDto,
+  LoginSessionDto,
   RegisterDto,
   ResetPasswordDto,
 } from './auth.dto.js';
@@ -31,12 +37,15 @@ import { LocalAuthGuard } from './local-auth.guard.js';
 import { Public } from './public.decorator.js';
 import { SESSION_COOKIE_NAME } from './session.middleware.js';
 
+const USER_AGENT_MAX = 200;
+
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly users: UsersService,
     private readonly authSessions: AuthSessionsService,
     private readonly flows: AccountFlowsService,
+    private readonly deletion: AccountDeletionService,
   ) {}
 
   /** Answers 202 whether or not the email was already taken, so the response does not reveal registered emails. */
@@ -62,6 +71,7 @@ export class AuthController {
   @ApiOkResponse({ type: AccountDto })
   login(@Body() _dto: LoginDto, @Req() request: Request): AccountDto {
     request.session.createdAt = Date.now();
+    request.session.userAgent = request.get('user-agent')?.slice(0, USER_AGENT_MAX);
     return this.toAccount(request.user);
   }
 
@@ -107,6 +117,35 @@ export class AuthController {
     if (!(await this.flows.resetPassword(dto.token, dto.newPassword))) {
       throw new BadRequestException('The link is invalid or expired');
     }
+  }
+
+  @Get('sessions')
+  @ApiOkResponse({ type: [LoginSessionDto] })
+  sessions(@CurrentUser() user: Express.User, @Req() request: Request): Promise<LoginSessionDto[]> {
+    return this.authSessions.list(user.id, request.sessionID);
+  }
+
+  @Delete('sessions/:id')
+  @HttpCode(204)
+  async endSession(@CurrentUser() user: Express.User, @Param('id') id: string): Promise<void> {
+    if (!(await this.authSessions.endOne(user.id, id))) throw new NotFoundException('No such login');
+  }
+
+  @Delete('sessions')
+  @HttpCode(204)
+  async endOtherSessions(@CurrentUser() user: Express.User, @Req() request: Request): Promise<void> {
+    await this.authSessions.endOthers(user.id, request.sessionID);
+  }
+
+  @Delete('account')
+  @HttpCode(204)
+  async deleteAccount(
+    @CurrentUser() user: Express.User,
+    @Body() dto: DeleteAccountDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    if (!(await this.deletion.delete(user.id, dto.password))) throw new ForbiddenException('The password is wrong');
+    response.clearCookie(SESSION_COOKIE_NAME);
   }
 
   @Post('change-password')

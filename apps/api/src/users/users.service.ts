@@ -88,6 +88,16 @@ export class UsersService {
     return true;
   }
 
+  async verifyPassword(userId: string, password: string): Promise<boolean> {
+    const user = await this.users.findOneBy({ id: userId });
+    return user !== null && (await this.hasher.verify(user.passwordHash, password));
+  }
+
+  /** Settings, projects, conversations and usage go with the user through the foreign keys. */
+  async delete(userId: string): Promise<void> {
+    await this.users.delete({ id: userId });
+  }
+
   async markEmailConfirmed(userId: string): Promise<void> {
     await this.users.update({ id: userId, emailVerifiedAt: IsNull() }, { emailVerifiedAt: new Date() });
   }

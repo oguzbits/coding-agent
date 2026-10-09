@@ -9,8 +9,10 @@ import type { PostgresDriver } from 'typeorm/driver/postgres/PostgresDriver.js';
 import type { Env } from '../config/env.validation.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { createThrottlerOptions } from '../security/throttler.options.js';
+import { ProjectsModule } from '../projects/projects.module.js';
 import { MailModule } from '../mail/mail.module.js';
 import { UsersModule } from '../users/users.module.js';
+import { AccountDeletionService } from './account-deletion.service.js';
 import { AccountFlowsService } from './account-flows.service.js';
 import { AccountToken } from './account-token.entity.js';
 import { AccountTokensService } from './account-tokens.service.js';
@@ -29,6 +31,7 @@ type SessionStore = ReturnType<typeof createSessionStore>;
   imports: [
     UsersModule,
     MailModule,
+    ProjectsModule,
     TypeOrmModule.forFeature([AccountToken]),
     PassportModule.register({ session: true }),
     ThrottlerModule.forRootAsync({
@@ -47,6 +50,7 @@ type SessionStore = ReturnType<typeof createSessionStore>;
     AuthSessionsService,
     AccountTokensService,
     AccountFlowsService,
+    AccountDeletionService,
     {
       provide: SESSION_STORE,
       inject: [DataSource],
