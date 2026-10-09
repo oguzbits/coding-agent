@@ -21,6 +21,13 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 ## Open
 
 - Load tests: stress to the breaking point, endurance run, then set thresholds; add a `load-smoke` job to the (unpushed) CI workflow.
+- Review leftovers (minor): timing differences reveal whether an email is registered (register/forgot-password); change-password
+  does not invalidate outstanding reset tokens and `issue()` is not transactional; change-password and account deletion are not
+  in the strict throttle bucket; the approval waiter is registered after two DB writes (an early approval can get 404);
+  model-supplied call ids can repeat (use server-side ids); tokens stay in the URL on confirm/reset pages; the Host check
+  answers 421 for probes by IP (load balancer health checks); `authTagLength` not pinned, first-account check not atomic,
+  orphaned folders when deleting during clone/run.
+- Without a real `MailSender`, production logs recipient and subject only; mails are not delivered.
 - A run waiting for an approval has no time limit and blocks the user's single active run.
 - No span for the HTTP request itself (auto-instrumentation does not hook into ESM reliably); spans cover run, model call and tool call.
 - The SSE channel gauge has no HTTP test; the gauge itself is unit-tested.
