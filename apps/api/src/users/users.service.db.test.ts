@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+import { PasswordHasher } from './password-hasher.js';
 import { DataSource } from 'typeorm';
 import { AppConfigModule } from '../config/app-config.module.js';
 import { DatabaseModule } from '../database/database.module.js';
@@ -40,6 +41,14 @@ describe('UsersService (registration open)', () => {
   it('rejects a second registration of the same email regardless of case', async () => {
     await ctx.users.register('alice@example.com', password);
     await expect(ctx.users.register('ALICE@example.com', password)).rejects.toBeInstanceOf(EmailTakenError);
+  });
+
+  it('spends the hashing time for a taken address as well, so the answer time does not give it away', async () => {
+    await ctx.users.register('alice@example.com', password);
+    const hash = vi.spyOn(ctx.moduleRef.get(PasswordHasher), 'hash');
+    await expect(ctx.users.register('alice@example.com', password)).rejects.toBeInstanceOf(EmailTakenError);
+    expect(hash).toHaveBeenCalledTimes(1);
+    hash.mockRestore();
   });
 
   it('authenticates with the right password only', async () => {
@@ -151,5 +160,13 @@ describe('UsersService (registration closed)', () => {
   it('refuses every further account', async () => {
     await ctx.users.register('first@example.com', password);
     await expect(ctx.users.register('second@example.com', password)).rejects.toBeInstanceOf(RegistrationClosedError);
+  });
+
+  it('lets only one of several simultaneous first registrations through', async () => {
+    const results = await Promise.allSettled(
+      ['a', 'b', 'c', 'd'].map((name) => ctx.users.register(`${name}@example.com`, password)),
+    );
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(await ctx.dataSource.query('select count(*)::int as n from users')).toEqual([{ n: 1 }]);
   });
 });

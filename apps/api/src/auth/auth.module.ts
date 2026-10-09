@@ -23,6 +23,7 @@ import { LocalStrategy } from './local.strategy.js';
 import { SessionAuthGuard } from './session-auth.guard.js';
 import { createSessionMiddleware, createSessionStore } from './session.middleware.js';
 import { SessionSerializer } from './session.serializer.js';
+import { TokenCleanupService } from './token-cleanup.service.js';
 
 const SESSION_STORE = Symbol('SESSION_STORE');
 type SessionStore = ReturnType<typeof createSessionStore>;
@@ -49,6 +50,7 @@ type SessionStore = ReturnType<typeof createSessionStore>;
     SessionSerializer,
     AuthSessionsService,
     AccountTokensService,
+    TokenCleanupService,
     AccountFlowsService,
     AccountDeletionService,
     {

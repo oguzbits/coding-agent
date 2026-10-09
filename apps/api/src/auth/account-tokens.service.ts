@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHash, randomBytes } from 'node:crypto';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, LessThan, Not, Repository } from 'typeorm';
 import { AccountToken, type TokenPurpose } from './account-token.entity.js';
 
 const hashOf = (token: string) => createHash('sha256').update(token).digest('hex');
@@ -13,14 +13,29 @@ export class AccountTokensService {
   /** Creates a token and returns it. Older unused tokens of the same purpose stop working. */
   async issue(userId: string, purpose: TokenPurpose, validMinutes: number): Promise<string> {
     const token = randomBytes(32).toString('base64url');
-    await this.tokens.delete({ userId, purpose, usedAt: IsNull() });
-    await this.tokens.insert({
-      userId,
-      purpose,
-      tokenHash: hashOf(token),
-      expiresAt: new Date(Date.now() + validMinutes * 60_000),
+    // One transaction: a failure between the two statements must not leave the user without any working token.
+    await this.tokens.manager.transaction(async (manager) => {
+      await manager.delete(AccountToken, { userId, purpose, usedAt: IsNull() });
+      await manager.insert(AccountToken, {
+        userId,
+        purpose,
+        tokenHash: hashOf(token),
+        expiresAt: new Date(Date.now() + validMinutes * 60_000),
+      });
     });
     return token;
+  }
+
+  /** Makes all unused tokens of this purpose stop working. */
+  async revoke(userId: string, purpose: TokenPurpose): Promise<void> {
+    await this.tokens.delete({ userId, purpose, usedAt: IsNull() });
+  }
+
+  /** Deletes tokens that can no longer be used. Returns how many were removed. */
+  async deleteExpiredAndUsed(): Promise<number> {
+    const expired = await this.tokens.delete({ expiresAt: LessThan(new Date()) });
+    const used = await this.tokens.delete({ usedAt: Not(IsNull()) });
+    return (expired.affected ?? 0) + (used.affected ?? 0);
   }
 
   /** Uses the token up and returns the user it belongs to, or null if it is unknown, used, expired or for another purpose. */

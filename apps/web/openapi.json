@@ -1554,39 +1554,48 @@
           "projectId"
         ]
       },
+      "PendingApprovalDto": {
+        "type": "object",
+        "properties": {
+          "callId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "preview": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "callId",
+          "name",
+          "preview"
+        ]
+      },
       "ActiveRunDto": {
         "type": "object",
         "properties": {
+          "pendingApproval": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PendingApprovalDto"
+              }
+            ]
+          },
           "id": {
             "type": "string"
           },
           "state": {
             "type": "string"
-          },
-          "pendingApproval": {
-            "type": "object",
-            "properties": {
-              "callId": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string"
-              },
-              "preview": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "callId",
-              "name",
-              "preview"
-            ]
           }
         },
         "required": [
+          "pendingApproval",
           "id",
-          "state",
-          "pendingApproval"
+          "state"
         ]
       },
       "ConversationDto": {

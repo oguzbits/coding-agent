@@ -1,7 +1,8 @@
 import type { ExecutionContext } from '@nestjs/common';
 import type { ThrottlerModuleOptions } from '@nestjs/throttler';
 
-const AUTH_ROUTE = /\/auth\/(login|register|forgot-password|reset-password|confirm-email|resend-confirmation)\/?$/;
+const AUTH_ROUTE =
+  /\/auth\/(login|register|forgot-password|reset-password|confirm-email|resend-confirmation|change-password|account)\/?$/;
 
 const isAuthRoute = (context: ExecutionContext) =>
   AUTH_ROUTE.test(context.switchToHttp().getRequest<{ path: string }>().path);

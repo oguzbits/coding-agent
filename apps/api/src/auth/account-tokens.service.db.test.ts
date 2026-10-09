@@ -66,4 +66,21 @@ describe('AccountTokensService', () => {
     await dataSource.query('DELETE FROM users');
     expect(await dataSource.getRepository(AccountToken).count()).toBe(0);
   });
+
+  it('revokes all unused tokens of a purpose and leaves the other purposes alone', async () => {
+    const reset = await tokens.issue(userId, 'reset_password', 60);
+    const confirm = await tokens.issue(userId, 'confirm_email', 60);
+    await tokens.revoke(userId, 'reset_password');
+    expect(await tokens.consume(reset, 'reset_password')).toBeNull();
+    expect(await tokens.consume(confirm, 'confirm_email')).toBe(userId);
+  });
+
+  it('removes expired and used tokens when cleaning up, and keeps the valid ones', async () => {
+    const valid = await tokens.issue(userId, 'reset_password', 60);
+    const used = await tokens.issue(userId, 'confirm_email', 60);
+    await tokens.consume(used, 'confirm_email');
+    await tokens.issue(userId, 'confirm_email', -1);
+    expect(await tokens.deleteExpiredAndUsed()).toBe(2);
+    expect(await tokens.consume(valid, 'reset_password')).toBe(userId);
+  });
 });

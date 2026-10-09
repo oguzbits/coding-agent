@@ -1,4 +1,4 @@
-import { Controller, Get, Module, Post, type INestApplication } from '@nestjs/common';
+import { Controller, Delete, Get, Module, Post, type INestApplication } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -19,6 +19,16 @@ class DummyController {
 
   @Post('auth/forgot-password')
   forgot() {
+    return { ok: true };
+  }
+
+  @Post('auth/change-password')
+  change() {
+    return { ok: true };
+  }
+
+  @Delete('auth/account')
+  remove() {
     return { ok: true };
   }
 
@@ -72,5 +82,12 @@ describe('throttler options', () => {
     for (let i = 0; i < 6; i += 1) statuses.push((await request(app.getHttpServer()).get('/api/other')).status);
     expect(statuses).toEqual([200, 200, 200, 200, 200, 429]);
     expect((await request(app.getHttpServer()).post('/api/auth/login')).status).toBe(201);
+  });
+
+  it('counts password change and account deletion against the auth limit, since both check a password', async () => {
+    await request(app.getHttpServer()).post('/api/auth/change-password');
+    await request(app.getHttpServer()).delete('/api/auth/account');
+    expect((await request(app.getHttpServer()).post('/api/auth/change-password')).status).toBe(429);
+    expect((await request(app.getHttpServer()).delete('/api/auth/account')).status).toBe(429);
   });
 });

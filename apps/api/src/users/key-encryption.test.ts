@@ -51,4 +51,9 @@ describe('KeyEncryption', () => {
   it('rejects a master key that is not 32 bytes', () => {
     expect(() => new KeyEncryption(randomBytes(16), 1)).toThrow(/32 bytes/);
   });
+
+  it('refuses a shortened authentication tag', () => {
+    const sealed = encryption.encrypt('secret', userId);
+    expect(() => encryption.decrypt({ ...sealed, tag: sealed.tag.subarray(0, 4) }, userId)).toThrow();
+  });
 });

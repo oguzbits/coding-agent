@@ -6,9 +6,10 @@ const middleware = createOriginHostMiddleware({
   port: 3000,
 });
 
-function run(req: { method?: string; host?: string; origin?: string }) {
+function run(req: { method?: string; host?: string; origin?: string; path?: string }) {
   const request = {
     method: req.method ?? 'GET',
+    path: req.path ?? '/api/conversations',
     headers: { host: req.host, origin: req.origin },
   } as unknown as Request;
   let status: number | undefined;
@@ -57,5 +58,14 @@ describe('origin and host check', () => {
 
   it('does not check the origin of safe methods', () => {
     expect(run({ method: 'GET', host: 'localhost:3000', origin: 'https://evil.example' }).called).toBe(true);
+  });
+
+  it('answers health probes for any host, since load balancers call them by IP address', () => {
+    expect(run({ host: '10.0.0.5:3000', path: '/api/health/live' }).called).toBe(true);
+    expect(run({ host: '10.0.0.5:3000', path: '/api/health/ready' }).called).toBe(true);
+    expect(run({ host: '10.0.0.5:3000', path: '/api/health/live/' }).called).toBe(true);
+    expect(run({ host: '10.0.0.5:3000', path: '/api/health/other' }).status).toBe(421);
+    expect(run({ host: '10.0.0.5:3000', path: '/api/conversations' }).status).toBe(421);
+    expect(run({ method: 'POST', host: '10.0.0.5:3000', path: '/api/health/live' }).status).toBe(421);
   });
 });

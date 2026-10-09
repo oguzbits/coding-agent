@@ -36,6 +36,9 @@ const NO_SETTINGS = {
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
+/** Key of the advisory lock that serializes registrations while they are closed. */
+const FIRST_ACCOUNT_LOCK = 7_001;
+
 @Injectable()
 export class UsersService {
   private dummyHash?: Promise<string>;
@@ -50,12 +53,19 @@ export class UsersService {
 
   /** The first account can always be created; every further one needs registration to be open. */
   async register(email: string, password: string): Promise<User> {
-    if (!this.registrationOpen && (await this.users.count()) > 0) throw new RegistrationClosedError();
     const normalized = normalizeEmail(email);
-    if (await this.users.existsBy({ email: normalized })) throw new EmailTakenError();
-    const user = this.users.create({ email: normalized, passwordHash: await this.hasher.hash(password) });
+    // Hash before looking, so the time of the answer does not reveal whether the address is taken.
+    const passwordHash = await this.hasher.hash(password);
     try {
-      return await this.users.save(user);
+      return await this.users.manager.transaction(async (manager) => {
+        if (!this.registrationOpen) {
+          // Without the lock, several first registrations at once would all see an empty table.
+          await manager.query('SELECT pg_advisory_xact_lock($1)', [FIRST_ACCOUNT_LOCK]);
+          if ((await manager.count(User)) > 0) throw new RegistrationClosedError();
+        }
+        if (await manager.existsBy(User, { email: normalized })) throw new EmailTakenError();
+        return manager.save(manager.create(User, { email: normalized, passwordHash }));
+      });
     } catch (error) {
       if (isUniqueViolation(error)) throw new EmailTakenError();
       throw error;

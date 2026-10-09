@@ -2,6 +2,9 @@ import type { NextFunction, Request, Response } from 'express';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
+// Health probes carry no data and are called by IP address from load balancers, so they skip the host check.
+const HEALTH_PATH = /^\/api\/health\/(live|ready)\/?$/;
+
 interface Options {
   allowedOrigins: string[];
   port: number;
@@ -22,7 +25,8 @@ export function createOriginHostMiddleware({ allowedOrigins, port }: Options) {
 
   return (req: Request, res: Response, next: NextFunction) => {
     const host = req.headers.host;
-    if (!host || !hosts.has(host)) {
+    const isProbe = req.method === 'GET' && HEALTH_PATH.test(req.path);
+    if (!isProbe && (!host || !hosts.has(host))) {
       res.status(421).json({ statusCode: 421, message: 'Unknown host' });
       return;
     }

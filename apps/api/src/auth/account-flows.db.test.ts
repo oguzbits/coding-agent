@@ -36,9 +36,19 @@ describe('confirming the email and resetting the password (HTTP)', () => {
   const tokenOf = (mail: Mail | undefined) => /token=([\w-]+)/.exec(mail?.text ?? '')?.[1] ?? '';
   const lastMail = () => outbox.sent.at(-1);
 
+  // Mails are sent after the response, so tests wait for them to arrive.
+  const mailsSent = (count: number) => vi.waitFor(() => expect(outbox.sent).toHaveLength(count));
+  async function requestMail(url: string, body: object) {
+    const before = outbox.sent.length;
+    const response = await post(agent(), url, body);
+    await mailsSent(before + 1);
+    return response;
+  }
+
   async function registerAndLogin() {
     const a = agent();
     await post(a, '/auth/register', { email, password });
+    await mailsSent(1);
     await post(a, '/auth/login', { email, password });
     return a;
   }
@@ -106,9 +116,10 @@ describe('confirming the email and resetting the password (HTTP)', () => {
   it('answers a password reset request the same way for known and unknown emails', async () => {
     await registerAndLogin();
     outbox.sent.length = 0;
-    const known = await post(agent(), '/auth/forgot-password', { email });
+    const known = await requestMail('/auth/forgot-password', { email });
     const unknown = await post(agent(), '/auth/forgot-password', { email: 'nobody@example.com' });
     expect([known.status, unknown.status]).toEqual([202, 202]);
+    await new Promise((resolve) => setTimeout(resolve, 100));
     expect(outbox.sent).toHaveLength(1);
     expect(outbox.sent[0].to).toBe(email);
     expect(outbox.sent[0].text).toContain('/reset-password?token=');
@@ -116,7 +127,7 @@ describe('confirming the email and resetting the password (HTTP)', () => {
 
   it('resets the password once, ends all sessions and confirms the email address', async () => {
     const a = await registerAndLogin();
-    await post(agent(), '/auth/forgot-password', { email });
+    await requestMail('/auth/forgot-password', { email });
     const token = tokenOf(lastMail());
 
     expect((await post(agent(), '/auth/reset-password', { token, newPassword })).status).toBe(204);
@@ -131,8 +142,20 @@ describe('confirming the email and resetting the password (HTTP)', () => {
 
   it('rejects a new password that is too short', async () => {
     await registerAndLogin();
-    await post(agent(), '/auth/forgot-password', { email });
+    await requestMail('/auth/forgot-password', { email });
     const response = await post(agent(), '/auth/reset-password', { token: tokenOf(lastMail()), newPassword: 'short' });
     expect(response.status).toBe(400);
+  });
+
+  it('stops an outstanding reset link from working once the password was changed in the settings', async () => {
+    const a = await registerAndLogin();
+    await requestMail('/auth/forgot-password', { email });
+    const token = tokenOf(lastMail());
+
+    expect((await post(a, '/auth/change-password', { currentPassword: password, newPassword })).status).toBe(204);
+
+    expect((await post(agent(), '/auth/reset-password', { token, newPassword: 'a third horse battery' })).status).toBe(
+      400,
+    );
   });
 });

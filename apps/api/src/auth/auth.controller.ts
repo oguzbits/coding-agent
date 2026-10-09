@@ -62,7 +62,7 @@ export class AuthController {
   async register(@Body() dto: RegisterDto): Promise<void> {
     try {
       const user = await this.users.register(dto.email, dto.password);
-      await this.flows.sendConfirmation(user.id, user.email);
+      this.flows.sendConfirmationInBackground(user.id, user.email);
     } catch (error) {
       if (error instanceof EmailTakenError) return;
       if (error instanceof RegistrationClosedError) throw new ForbiddenException('Registration is closed');
@@ -113,8 +113,8 @@ export class AuthController {
   @Public()
   @Post('forgot-password')
   @HttpCode(202)
-  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> {
-    await this.flows.requestPasswordReset(dto.email);
+  forgotPassword(@Body() dto: ForgotPasswordDto): void {
+    this.flows.requestPasswordReset(dto.email);
   }
 
   @Public()
@@ -165,6 +165,7 @@ export class AuthController {
     const changed = await this.users.changePassword(user.id, dto.currentPassword, dto.newPassword);
     if (!changed) throw new ForbiddenException('The current password is wrong');
     await this.authSessions.endOthers(user.id, request.sessionID);
+    await this.flows.revokeResetLinks(user.id);
   }
 
   private toAccount(user: Express.User | undefined): AccountDto {

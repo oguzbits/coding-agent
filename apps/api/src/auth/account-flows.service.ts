@@ -26,6 +26,15 @@ export class AccountFlowsService {
     this.resetMinutes = config.get('RESET_TOKEN_MINUTES', { infer: true });
   }
 
+  /** Like requestPasswordReset, the registration does not wait for the mail. */
+  sendConfirmationInBackground(userId: string, email: string): void {
+    void this.sendConfirmation(userId, email).catch((error: unknown) => {
+      this.logger.error(
+        `Could not prepare the confirmation mail: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    });
+  }
+
   async sendConfirmation(userId: string, email: string): Promise<void> {
     const token = await this.tokens.issue(userId, 'confirm_email', this.confirmHours * 60);
     await this.deliver({
@@ -42,8 +51,17 @@ export class AccountFlowsService {
     return true;
   }
 
-  /** Sends a mail only for known addresses; the caller answers the same way either way. */
-  async requestPasswordReset(email: string): Promise<void> {
+  /**
+   * Sends a mail only for known addresses. The caller does not wait for it and answers the same way either way,
+   * so neither the answer nor its timing reveals which addresses have an account.
+   */
+  requestPasswordReset(email: string): void {
+    void this.sendResetMail(email).catch((error: unknown) => {
+      this.logger.error(`Could not prepare the reset mail: ${error instanceof Error ? error.message : String(error)}`);
+    });
+  }
+
+  private async sendResetMail(email: string): Promise<void> {
     const user = await this.users.findByEmail(email);
     if (!user) return;
     const token = await this.tokens.issue(user.id, 'reset_password', this.resetMinutes);
@@ -52,6 +70,11 @@ export class AccountFlowsService {
       subject: 'Reset your password',
       text: `Open this link to choose a new password (valid for ${this.resetMinutes} minutes). If you did not ask for it, ignore this mail.\n\n${this.webOrigin}/reset-password?token=${token}\n`,
     });
+  }
+
+  /** A changed password makes a reset link that was mailed earlier worthless. */
+  async revokeResetLinks(userId: string): Promise<void> {
+    await this.tokens.revoke(userId, 'reset_password');
   }
 
   /** Receiving the mail proves the address, so a reset also confirms it. All logins end. */

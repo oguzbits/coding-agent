@@ -48,10 +48,17 @@ export class ApprovalDto {
   approved!: boolean;
 }
 
+export class PendingApprovalDto {
+  callId!: string;
+  name!: string;
+  preview!: string;
+}
+
 export class ActiveRunDto {
   id!: string;
   state!: string;
-  pendingApproval!: { callId: string; name: string; preview: string } | null;
+  @ApiProperty({ type: PendingApprovalDto, nullable: true })
+  pendingApproval!: PendingApprovalDto | null;
 }
 
 export class ConversationDto {
