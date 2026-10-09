@@ -12,9 +12,11 @@
     "lint": "oxlint -c oxlint.json src && eslint src",
     "test": "vitest run",
     "api:types": "openapi-typescript openapi.json -o src/api/schema.d.ts",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "~1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
