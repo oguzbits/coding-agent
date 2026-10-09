@@ -22,6 +22,7 @@ for last; do :; done
 URL=$(printf '%s\\n' "$@" | tail -n 2 | head -n 1)
 case "$URL" in
   *broken*) echo "fatal: repository not found" >&2; exit 128 ;;
+  *slow*) mkdir -p "$last"; sleep 30; exit 0 ;;
   *big*) mkdir -p "$last"; head -c 200000 /dev/zero > "$last/blob"; exit 0 ;;
 esac
 mkdir -p "$last/.git" && echo cloned > "$last/README.md" && echo "[core]" > "$last/.git/config"
@@ -117,6 +118,20 @@ describe('cloning a project (HTTP)', () => {
     expect(JSON.stringify(failed.body)).toContain('repository not found');
     expect(await projectCount()).toBe(0);
     expect(await exists(path.join(root, aliceId))).toBe(false);
+  });
+
+  it('stops cloning and cleans up when the client goes away', async () => {
+    const pending = call(alice, 'post', '/projects').send({ name: 'Cloned', cloneUrl: 'https://github.com/a/slow' });
+    pending.end(() => undefined);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    pending.abort();
+
+    // While the clone still ran, a second one would be refused with 409.
+    await vi.waitFor(async () => expect((await clone('https://github.com/a/small')).status).toBe(201), {
+      timeout: 5000,
+      interval: 200,
+    });
+    expect(await projectCount()).toBe(1);
   });
 
   it('refuses a repository above the size limit', async () => {

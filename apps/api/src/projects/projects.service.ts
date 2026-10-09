@@ -45,8 +45,9 @@ export class ProjectsService {
     return path.join(this.root, userId, projectId);
   }
 
-  async create(userId: string, name: string, cloneUrl?: string): Promise<Project> {
-    if (cloneUrl !== undefined) return this.createCloned(userId, name, cloneUrl);
+  async create(userId: string, name: string, cloneUrl?: string, signal?: AbortSignal): Promise<Project> {
+    if (cloneUrl !== undefined)
+      return this.createCloned(userId, name, cloneUrl, signal ?? new AbortController().signal);
     const project = await this.projects.save(this.projects.create({ userId, name, origin: 'empty' }));
     try {
       await mkdir(this.directoryOf(userId, project.id), { recursive: true });
@@ -58,7 +59,7 @@ export class ProjectsService {
   }
 
   /** Clones first, then records the project, so a failed clone leaves nothing behind. One clone per user at a time. */
-  private async createCloned(userId: string, name: string, cloneUrl: string): Promise<Project> {
+  private async createCloned(userId: string, name: string, cloneUrl: string, signal: AbortSignal): Promise<Project> {
     if (!this.cloning.cloningAvailable)
       throw new ServiceUnavailableException('Cloning is not available on this server.');
     const url = this.parseUrl(cloneUrl);
@@ -69,7 +70,7 @@ export class ProjectsService {
       if (left <= 0) throw new PayloadTooLargeException('Your storage is full. Delete a project to make room.');
       const project = await this.projects.save(this.projects.create({ userId, name, origin: url }));
       try {
-        await this.cloning.cloner.clone(url, this.directoryOf(userId, project.id), new AbortController().signal, {
+        await this.cloning.cloner.clone(url, this.directoryOf(userId, project.id), signal, {
           maxBytes: left,
         });
       } catch (error) {

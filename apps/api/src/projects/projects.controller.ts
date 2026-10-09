@@ -1,6 +1,19 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiProduces } from '@nestjs/swagger';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import type { Project } from './project.entity.js';
 import { CreateProjectDto, FileContentDto, FileListDto, ProjectDto, RenameProjectDto } from './projects.dto.js';
@@ -24,8 +37,20 @@ export class ProjectsController {
 
   @Post()
   @ApiCreatedResponse({ type: ProjectDto })
-  async create(@CurrentUser() user: Express.User, @Body() dto: CreateProjectDto): Promise<ProjectDto> {
-    return view(await this.projects.create(user.id, dto.name, dto.cloneUrl));
+  async create(
+    @CurrentUser() user: Express.User,
+    @Body() dto: CreateProjectDto,
+    @Req() req: Request,
+  ): Promise<ProjectDto> {
+    // A clone must not keep running (and keep the user's clone slot) after the client has gone away.
+    const controller = new AbortController();
+    const onClose = () => controller.abort();
+    req.res?.once('close', onClose);
+    try {
+      return view(await this.projects.create(user.id, dto.name, dto.cloneUrl, controller.signal));
+    } finally {
+      req.res?.off('close', onClose);
+    }
   }
 
   @Get()
