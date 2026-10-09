@@ -16,7 +16,7 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 
 ## Next
 
-- Slice 7b rest: compare light theme and chat view with OpenHands (see [DESIGN-ABGLEICH.md](DESIGN-ABGLEICH.md))
+- Slice 7b: adopt the OpenHands UI component by component, order and rules in [UI-UEBERNAHME.md](UI-UEBERNAHME.md); [DESIGN-ABGLEICH.md](DESIGN-ABGLEICH.md) holds the earlier measured pass
 
 ## Open
 
