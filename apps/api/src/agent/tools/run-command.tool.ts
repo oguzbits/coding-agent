@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
 import { z } from 'zod';
+import { killGroup } from '../../process/process-group.js';
 import { ToolError, type AgentTool } from '../types.js';
 import { OutputCapture } from './output-capture.js';
 import type { Workspace } from './workspace.js';
@@ -39,15 +40,6 @@ const cleanEnv = (home: string): NodeJS.ProcessEnv => ({
   NO_COLOR: '1',
   GIT_TERMINAL_PROMPT: '0',
 });
-
-function killGroup(pid: number | undefined, signal: NodeJS.Signals): void {
-  if (pid === undefined) return;
-  try {
-    process.kill(-pid, signal);
-  } catch {
-    // The group is already gone.
-  }
-}
 
 interface Finished {
   code: number | null;

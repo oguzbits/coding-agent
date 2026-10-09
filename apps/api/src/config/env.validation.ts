@@ -207,6 +207,32 @@ export class Env {
   @Min(1)
   AGENT_COMMAND_KILL_GRACE_MS = 2000;
 
+  /** Program used to clone repositories. */
+  @IsString()
+  @IsNotEmpty()
+  GIT_BINARY = 'git';
+
+  /** Oldest git that has the fixes for CVE-2024-32002 and CVE-2025-48384. Cloning is off when git is older. */
+  @IsString()
+  @IsNotEmpty()
+  GIT_MIN_VERSION = '2.50.1';
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  PROJECT_CLONE_TIMEOUT_SECONDS = 120;
+
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  PROJECT_CLONE_MAX_BYTES = 200_000_000;
+
+  /** All projects of one user together. Checked when a repository is cloned. */
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  USER_STORAGE_MAX_BYTES = 1_000_000_000;
+
   /** Largest part of a file the project file viewer returns. */
   @Transform(toNumber)
   @IsInt()

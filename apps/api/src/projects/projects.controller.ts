@@ -25,7 +25,7 @@ export class ProjectsController {
   @Post()
   @ApiCreatedResponse({ type: ProjectDto })
   async create(@CurrentUser() user: Express.User, @Body() dto: CreateProjectDto): Promise<ProjectDto> {
-    return view(await this.projects.create(user.id, dto.name));
+    return view(await this.projects.create(user.id, dto.name, dto.cloneUrl));
   }
 
   @Get()

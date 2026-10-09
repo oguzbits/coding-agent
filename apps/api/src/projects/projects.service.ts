@@ -1,9 +1,26 @@
 import { mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  GatewayTimeoutException,
+  Injectable,
+  NotFoundException,
+  PayloadTooLargeException,
+  ServiceUnavailableException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { directorySize } from './disk-usage.js';
+import { CloneError, GitCloner } from './git-cloner.js';
 import { Project } from './project.entity.js';
+
+export interface CloningOptions {
+  cloner: GitCloner;
+  cloningAvailable: boolean;
+  userStorageMaxBytes: number;
+}
 
 type RemovalHook = (userId: string, projectId: string) => Promise<void>;
 
@@ -14,7 +31,9 @@ export class ProjectsService {
   constructor(
     @InjectRepository(Project) private readonly projects: Repository<Project>,
     private readonly root: string,
+    private readonly cloning: CloningOptions,
   ) {}
+  private readonly cloningNow = new Set<string>();
 
   /** Others (the run registry) register to be asked before a project goes away, so a running agent stops first. */
   onBeforeRemove(hook: RemovalHook): void {
@@ -26,7 +45,8 @@ export class ProjectsService {
     return path.join(this.root, userId, projectId);
   }
 
-  async create(userId: string, name: string): Promise<Project> {
+  async create(userId: string, name: string, cloneUrl?: string): Promise<Project> {
+    if (cloneUrl !== undefined) return this.createCloned(userId, name, cloneUrl);
     const project = await this.projects.save(this.projects.create({ userId, name, origin: 'empty' }));
     try {
       await mkdir(this.directoryOf(userId, project.id), { recursive: true });
@@ -35,6 +55,55 @@ export class ProjectsService {
       throw error;
     }
     return project;
+  }
+
+  /** Clones first, then records the project, so a failed clone leaves nothing behind. One clone per user at a time. */
+  private async createCloned(userId: string, name: string, cloneUrl: string): Promise<Project> {
+    if (!this.cloning.cloningAvailable)
+      throw new ServiceUnavailableException('Cloning is not available on this server.');
+    const url = this.parseUrl(cloneUrl);
+    if (this.cloningNow.has(userId)) throw new ConflictException('Another clone is still running. Wait until it ends.');
+    this.cloningNow.add(userId);
+    try {
+      const left = this.cloning.userStorageMaxBytes - (await directorySize(path.join(this.root, userId)));
+      if (left <= 0) throw new PayloadTooLargeException('Your storage is full. Delete a project to make room.');
+      const project = await this.projects.save(this.projects.create({ userId, name, origin: url }));
+      try {
+        await this.cloning.cloner.clone(url, this.directoryOf(userId, project.id), new AbortController().signal, {
+          maxBytes: left,
+        });
+      } catch (error) {
+        await this.projects.delete({ id: project.id });
+        throw this.cloneFailure(error);
+      }
+      return project;
+    } finally {
+      this.cloningNow.delete(userId);
+    }
+  }
+
+  private parseUrl(raw: string): string {
+    try {
+      return GitCloner.parseUrl(raw);
+    } catch (error) {
+      throw this.cloneFailure(error);
+    }
+  }
+
+  private cloneFailure(error: unknown): unknown {
+    if (!(error instanceof CloneError)) return error;
+    switch (error.code) {
+      case 'invalid_url':
+        return new BadRequestException(error.message);
+      case 'too_large':
+        return new PayloadTooLargeException(error.message);
+      case 'timeout':
+        return new GatewayTimeoutException(error.message);
+      case 'unavailable':
+        return new ServiceUnavailableException(error.message);
+      default:
+        return new UnprocessableEntityException(error.message);
+    }
   }
 
   list(userId: string): Promise<Project[]> {
