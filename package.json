@@ -21,6 +21,7 @@
     "test": "npm test --workspaces --if-present && node --test \".claude/hooks/*.test.mjs\" \"scripts/*.test.mjs\"",
     "test:db": "npm run test:db --workspaces --if-present",
     "api:types": "npm run openapi:export -w @coding-agent/api && npm run api:types -w @coding-agent/web",
+    "dev": "trap 'kill 0' INT TERM EXIT; npm run dev:api & npm run dev:web & wait",
     "dev:api": "npm run start:dev -w @coding-agent/api",
     "dev:web": "npm run dev -w @coding-agent/web",
     "db:up": "docker compose up -d --wait",
