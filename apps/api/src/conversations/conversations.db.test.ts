@@ -10,6 +10,8 @@ import { AppModule } from '../app.module.js';
 import { configureApp } from '../app.setup.js';
 import { validateEnv } from '../config/env.validation.js';
 import { resetTestDatabase } from '../testing/test-database.js';
+import { Metrics } from '../metrics/metrics.js';
+import { RunEventsService } from './run-events.service.js';
 import { RunsService } from './runs.service.js';
 
 const password = 'correct horse battery staple';
@@ -453,6 +455,62 @@ describe('conversations and runs (HTTP, fake model)', () => {
       await send(alice, id, 'hello');
       const stream = await reading;
       expect(ids(stream.text)).toEqual([1, 2, 3, 4]);
+    });
+
+    it('closes the stream when the login behind it ends', async () => {
+      const id = await createConversation(alice);
+      const closed = new Promise<void>((resolve, reject) => {
+        const req = http.get(
+          {
+            host: '127.0.0.1',
+            port,
+            path: `/api/conversations/${id}/events`,
+            headers: { Host: 'localhost:3000', Cookie: aliceCookie },
+          },
+          (res) => {
+            res.resume();
+            res.on('end', resolve);
+            res.on('close', resolve);
+            // Ending the login happens once the stream is open.
+            setTimeout(() => void dataSource.query('TRUNCATE auth_sessions'), 100);
+          },
+        );
+        req.on('error', reject);
+        setTimeout(() => reject(new Error('stream stayed open after the login ended')), 4000).unref();
+      });
+      await closed;
+    });
+
+    it('cleans up when the client leaves while the stored events are still being replayed', async () => {
+      const id = await createConversation(alice);
+      const events = app.get(RunEventsService);
+      const original = events.stream.bind(events);
+      const slow = vi.spyOn(events, 'stream').mockImplementation(async (...args) => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return original(...args);
+      });
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const req = http.get(
+            {
+              host: '127.0.0.1',
+              port,
+              path: `/api/conversations/${id}/events`,
+              headers: { Host: 'localhost:3000', Cookie: aliceCookie },
+            },
+            (res) => {
+              res.destroy();
+              resolve();
+            },
+          );
+          req.on('error', reject);
+        });
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        expect(await app.get(Metrics).render()).toMatch(/^sse_open_channels 0$/m);
+        expect(events['listeners'].size).toBe(0);
+      } finally {
+        slow.mockRestore();
+      }
     });
 
     it('refuses a stream for a conversation of someone else', async () => {

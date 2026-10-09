@@ -31,6 +31,7 @@ export default defineConfig({
             REGISTRATION_OPEN: 'true',
             REQUIRE_EMAIL_CONFIRMATION: 'false',
             THROTTLE_AUTH_PER_MINUTE: '1000',
+            SSE_HEARTBEAT_SECONDS: '1',
             WORKSPACES_DIR: path.join(os.tmpdir(), 'coding-agent-test-workspace'),
             PROJECT_FILE_VIEW_MAX_BYTES: '1000',
           },

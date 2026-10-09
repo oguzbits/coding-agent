@@ -10,11 +10,12 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import { ApiAcceptedResponse, ApiExtraModels, ApiOkResponse, ApiProduces, getSchemaPath } from '@nestjs/swagger';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import { EmailConfirmedGuard } from '../auth/email-confirmed.guard.js';
@@ -138,6 +139,7 @@ export class ConversationsController {
     @CurrentUser() user: Express.User,
     @Param('id', ParseUUIDPipe) id: string,
     @Headers('last-event-id') lastEventId: string | undefined,
+    @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
     await this.conversations.getOwned(user.id, id);
@@ -152,18 +154,43 @@ export class ConversationsController {
     });
     res.flushHeaders();
 
+    // The close handler comes first: the client may leave while the stored events are still being replayed.
+    let closed = false;
+    let cleanup = () => {};
+    this.metrics.channelOpened();
+    res.on('close', () => {
+      closed = true;
+      cleanup();
+      this.metrics.channelClosed();
+    });
+
     const unsubscribe = await this.events.stream(id, afterSeq, ({ seq, event }) => {
       res.write(`id: ${seq}\nevent: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
     });
+    if (closed) return unsubscribe();
     const heartbeat = setInterval(
-      () => res.write(': heartbeat\n\n'),
+      () => void this.beat(req, res),
       this.config.get('SSE_HEARTBEAT_SECONDS', { infer: true }) * 1000,
     );
-    this.metrics.channelOpened();
-    res.on('close', () => {
+    cleanup = () => {
       clearInterval(heartbeat);
       unsubscribe();
-      this.metrics.channelClosed();
+    };
+  }
+
+  /** Keeps the connection alive, and ends it once the login behind it is gone (logout, password change, deletion). */
+  private async beat(req: Request, res: Response): Promise<void> {
+    if (await this.loginStillValid(req)) res.write(': heartbeat\n\n');
+    else res.end();
+  }
+
+  private loginStillValid(req: Request): Promise<boolean> {
+    const maxAgeMs = this.config.get('SESSION_MAX_HOURS', { infer: true }) * 3_600_000;
+    return new Promise((resolve) => {
+      req.session.reload((error?: unknown) => {
+        const createdAt = req.session?.createdAt;
+        resolve(!error && createdAt !== undefined && Date.now() - createdAt <= maxAgeMs);
+      });
     });
   }
 }
