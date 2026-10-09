@@ -1,6 +1,28 @@
 import { useEffect, useRef } from 'react';
-import type { ChatItem } from './chat-state';
+import type { ChatItem, ToolItem } from './chat-state';
+import { ActionGroup, type ActionGroupProps } from './action-group';
+import { MarkdownText } from './markdown';
 import { ToolCard } from './tool-card';
+
+type Block = Exclude<ChatItem, ToolItem> | { kind: 'tools'; key: string; tools: ToolItem[] };
+
+/** Consecutive tool calls become one block, so a long run of actions does not bury the messages. */
+function toBlocks(items: ChatItem[]): Block[] {
+  const blocks: Block[] = [];
+  for (const item of items) {
+    const last = blocks.at(-1);
+    if (item.kind !== 'tool') blocks.push(item);
+    else if (last?.kind === 'tools') last.tools.push(item);
+    else blocks.push({ kind: 'tools', key: item.key, tools: [item] });
+  }
+  return blocks;
+}
+
+function ActionBlock({ tools, answering, onAnswer }: ActionGroupProps) {
+  const [only] = tools;
+  if (tools.length > 1 || !only) return <ActionGroup tools={tools} answering={answering} onAnswer={onAnswer} />;
+  return <ToolCard tool={only} answering={answering} onAnswer={(approved) => onAnswer(only.callId, approved)} />;
+}
 
 interface MessageListProps {
   items: ChatItem[];
@@ -17,7 +39,7 @@ export function MessageList({ items, onAnswer, answering }: MessageListProps) {
   return (
     <div className="scroll-thin flex-1 overflow-y-auto">
       <div className="mx-auto flex w-full max-w-[800px] flex-col gap-4 p-6">
-        {items.map((item) => {
+        {toBlocks(items).map((item) => {
           switch (item.kind) {
             case 'user':
               return (
@@ -29,11 +51,7 @@ export function MessageList({ items, onAnswer, answering }: MessageListProps) {
                 </p>
               );
             case 'assistant':
-              return (
-                <p key={item.key} className="whitespace-pre-wrap">
-                  {item.text}
-                </p>
-              );
+              return <MarkdownText key={item.key} text={item.text} />;
             case 'notice':
               return (
                 <p
@@ -44,15 +62,8 @@ export function MessageList({ items, onAnswer, answering }: MessageListProps) {
                   {item.text}
                 </p>
               );
-            case 'tool':
-              return (
-                <ToolCard
-                  key={item.key}
-                  tool={item}
-                  answering={answering}
-                  onAnswer={(approved) => onAnswer(item.callId, approved)}
-                />
-              );
+            case 'tools':
+              return <ActionBlock key={item.key} tools={item.tools} answering={answering} onAnswer={onAnswer} />;
           }
         })}
         <div ref={end} />
