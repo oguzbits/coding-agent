@@ -21,6 +21,7 @@ import {
   AGENT_LIMITS,
   AGENT_POLICY,
   AGENT_SYSTEM_PROMPT,
+  APPROVAL_TIMEOUT_MS,
   CREATE_TOOLS,
   RunsService,
   type PolicyFactory,
@@ -47,6 +48,11 @@ type AppConfig = ConfigService<Env, true>;
           return new ModePolicy(known ? (mode as PermissionMode) : 'ask', selfExecuting);
         };
       },
+    },
+    {
+      provide: APPROVAL_TIMEOUT_MS,
+      inject: [ConfigService],
+      useFactory: (config: AppConfig): number => config.get('APPROVAL_TIMEOUT_SECONDS', { infer: true }) * 1000,
     },
     {
       provide: AGENT_LIMITS,

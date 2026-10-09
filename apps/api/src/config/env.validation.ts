@@ -162,6 +162,12 @@ export class Env {
   @Min(1)
   AGENT_REPEAT_FAILURE_LIMIT = 3;
 
+  /** A run that waits this long for the user's decision is stopped, so it does not block the user's one active run. */
+  @Transform(toNumber)
+  @IsInt()
+  @Min(1)
+  APPROVAL_TIMEOUT_SECONDS = 1800;
+
   /** A run ends when a prompt exceeds this many tokens. */
   @Transform(toNumber)
   @IsInt()

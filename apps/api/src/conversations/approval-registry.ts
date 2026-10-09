@@ -4,17 +4,26 @@ type Waiter = { resolve: (approved: boolean) => void; cleanup: () => void };
 export class ApprovalRegistry {
   private readonly waiting = new Map<string, Waiter>();
 
+  /** With a time limit, `onTimeout` is called when nobody answers in time; it is expected to abort the run. */
+  constructor(private readonly options: { timeoutMs?: number; onTimeout?: () => void } = {}) {}
+
   request(callId: string, signal: AbortSignal): Promise<boolean> {
     return new Promise((resolve, reject) => {
       if (signal.aborted) return reject(abortError());
       const onAbort = () => {
+        this.waiting.get(callId)?.cleanup();
         this.waiting.delete(callId);
         reject(abortError());
       };
       signal.addEventListener('abort', onAbort, { once: true });
+      const { timeoutMs, onTimeout } = this.options;
+      const timer = timeoutMs && onTimeout ? setTimeout(onTimeout, timeoutMs) : undefined;
       this.waiting.set(callId, {
         resolve,
-        cleanup: () => signal.removeEventListener('abort', onAbort),
+        cleanup: () => {
+          clearTimeout(timer);
+          signal.removeEventListener('abort', onAbort);
+        },
       });
     });
   }

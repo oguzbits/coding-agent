@@ -5,7 +5,7 @@ const password = 'correct-horse-battery';
 async function signUp(page: Page) {
   const email = `e2e-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
   await page.goto('/login');
-  await page.getByRole('button', { name: 'No account yet? Create one' }).click();
+  await page.getByRole('link', { name: 'No account yet? Create one' }).click();
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: 'Create account' }).click();
@@ -13,7 +13,7 @@ async function signUp(page: Page) {
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page.getByRole('heading', { name: 'What should we build?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'What do you want to work on?' })).toBeVisible();
 }
 
 async function startChat(page: Page, message: string) {

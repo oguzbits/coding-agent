@@ -86,6 +86,56 @@ const results = (events: RunEvent[]) =>
   events.filter((e): e is Extract<RunEvent, { type: 'tool_result' }> => e.type === 'tool_result');
 
 describe('runAgent', () => {
+  it('is ready for the answer before it announces the approval request', async () => {
+    const order: string[] = [];
+    const ctx = setup([turnFromParts([call('echo', { value: 'a' }, 'c1')]), turnFromParts([text('done')])], {
+      approvals: {
+        request: async () => {
+          order.push('waiting');
+          return true;
+        },
+      },
+    });
+    ctx.setDecision('ask');
+    const emit = ctx.deps.sink.emit;
+    ctx.deps.sink.emit = async (event) => {
+      if (event.type === 'approval_requested') order.push('announced');
+      await emit(event);
+    };
+    await ctx.run();
+    expect(order).toEqual(['waiting', 'announced']);
+  });
+
+  it('gives every call its own id, even when the model repeats or omits ids', async () => {
+    const asked: string[] = [];
+    const ctx = setup(
+      [
+        turnFromParts([call('echo', { value: 'a' }, 'same'), call('echo', { value: 'b' }, 'same')]),
+        turnFromParts([call('echo', { value: 'c' }, 'same')]),
+        turnFromParts([text('done')]),
+      ],
+      {
+        approvals: {
+          request: async (callId) => {
+            asked.push(callId);
+            return true;
+          },
+        },
+      },
+    );
+    ctx.setDecision('ask');
+    await ctx.run();
+    const ids = ctx.events.filter((e) => e.type === 'tool_call').map((e) => (e as { callId: string }).callId);
+    expect(new Set(ids).size).toBe(3);
+    expect(ids).not.toContain('same');
+    expect(asked).toEqual(ids);
+    expect(results(ctx.events).map((e) => e.callId)).toEqual(ids);
+    // the model still gets its own ids back
+    expect(ctx.history[2]).toMatchObject({
+      parts: [{ functionResponse: { id: 'same' } }, { functionResponse: { id: 'same' } }],
+    });
+  });
+
   it('finishes after a plain answer and adds the model turn to the history', async () => {
     const ctx = setup([turnFromParts([text('All good')], { promptTokens: 50, outputTokens: 5 })]);
     const outcome = await ctx.run();
@@ -189,7 +239,7 @@ describe('runAgent', () => {
         'assistant_message',
         'run_finished',
       ]);
-      expect(ctx.events[1]).toMatchObject({ callId: 'c1', preview: 'preview:w' });
+      expect(ctx.events[1]).toMatchObject({ preview: 'preview:w' });
       expect(ctx.states).toEqual(['running', 'awaiting_approval', 'running', 'finished']);
       expect(results(ctx.events)[0].isError).toBe(false);
     });

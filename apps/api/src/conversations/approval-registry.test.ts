@@ -32,4 +32,31 @@ describe('ApprovalRegistry', () => {
     controller.abort();
     await expect(new ApprovalRegistry().request('c1', controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
   });
+
+  describe('with a time limit', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('calls onTimeout when nobody answers in time and forgets the request once aborted', async () => {
+      const controller = new AbortController();
+      const registry = new ApprovalRegistry({ timeoutMs: 1000, onTimeout: () => controller.abort() });
+      const pending = registry.request('c1', controller.signal);
+      const settled = expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+      await vi.advanceTimersByTimeAsync(999);
+      expect(registry.hasPending('c1')).toBe(true);
+      await vi.advanceTimersByTimeAsync(1);
+      await settled;
+      expect(registry.hasPending('c1')).toBe(false);
+    });
+
+    it('does not fire after the user has answered', async () => {
+      const onTimeout = vi.fn();
+      const registry = new ApprovalRegistry({ timeoutMs: 1000, onTimeout });
+      const pending = registry.request('c1', new AbortController().signal);
+      registry.resolve('c1', true);
+      await pending;
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(onTimeout).not.toHaveBeenCalled();
+    });
+  });
 });

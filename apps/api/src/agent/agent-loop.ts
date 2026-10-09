@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { withSpan } from '../tracing/with-span.js';
 import {
@@ -163,13 +164,15 @@ function nextStreak(previous: Streak, call: ToolCall, isError: boolean) {
 /** Runs one tool call through validation, policy and approval. Every failure becomes a result for the model. */
 async function handleCall(deps: AgentDeps, call: ToolCall): Promise<ToolResultForModel> {
   const { sink, signal, limits } = deps;
+  // The model's own ids can repeat across turns (or be missing), so events and approvals use ids made here.
+  const callId = randomUUID();
   const finish = async (output: string, isError: boolean): Promise<ToolResultForModel> => {
     const shown = truncate(output, limits.toolOutputMaxChars);
-    await sink.emit({ type: 'tool_result', callId: call.id, name: call.name, isError, output: shown });
+    await sink.emit({ type: 'tool_result', callId, name: call.name, isError, output: shown });
     return { call, output: shown, isError };
   };
 
-  await sink.emit({ type: 'tool_call', callId: call.id, name: call.name, args: call.args });
+  await sink.emit({ type: 'tool_call', callId, name: call.name, args: call.args });
 
   const tool = deps.tools.find((candidate) => candidate.name === call.name);
   if (!tool) {
@@ -190,10 +193,13 @@ async function handleCall(deps: AgentDeps, call: ToolCall): Promise<ToolResultFo
   if (decision === 'reject') return finish('This action is not allowed in the current mode.', true);
   if (decision === 'ask') {
     const preview = await tool.preview(parsed.data).catch(() => 'No preview available.');
-    await sink.emit({ type: 'approval_requested', callId: call.id, name: call.name, args: parsed.data, preview });
+    // Listen before announcing: the announcement is stored first, and an early answer must not find nobody waiting.
+    const answer = deps.approvals.request(callId, signal);
+    answer.catch(() => undefined);
+    await sink.emit({ type: 'approval_requested', callId, name: call.name, args: parsed.data, preview });
     await sink.setState('awaiting_approval');
-    const approved = await deps.approvals.request(call.id, signal);
-    await sink.emit({ type: 'approval_resolved', callId: call.id, approved });
+    const approved = await answer;
+    await sink.emit({ type: 'approval_resolved', callId, approved });
     await sink.setState('running');
     if (!approved) return finish('The user declined this action.', true);
   }

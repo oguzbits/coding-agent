@@ -31,6 +31,8 @@ export const AGENT_POLICY = Symbol('AGENT_POLICY');
 export type PolicyFactory = (mode: string) => ToolPolicy;
 export const AGENT_LIMITS = Symbol('AGENT_LIMITS');
 export const AGENT_SYSTEM_PROMPT = Symbol('AGENT_SYSTEM_PROMPT');
+/** How long a run may wait for the user's decision, in milliseconds. */
+export const APPROVAL_TIMEOUT_MS = Symbol('APPROVAL_TIMEOUT_MS');
 
 interface ActiveRun {
   runId: string;
@@ -61,6 +63,7 @@ export class RunsService implements OnApplicationBootstrap {
     @Inject(AGENT_POLICY) private readonly createPolicy: PolicyFactory,
     @Inject(AGENT_LIMITS) private readonly limits: AgentLimits,
     @Inject(AGENT_SYSTEM_PROMPT) private readonly systemPrompt: string,
+    @Inject(APPROVAL_TIMEOUT_MS) private readonly approvalTimeoutMs: number,
     private readonly metrics: Metrics,
   ) {}
 
@@ -93,7 +96,7 @@ export class RunsService implements OnApplicationBootstrap {
     if (this.active.has(userId)) throw new ConflictException('A run is already active. Stop it or wait until it ends.');
 
     const controller = new AbortController();
-    const approvals = new ApprovalRegistry();
+    const approvals = new ApprovalRegistry({ timeoutMs: this.approvalTimeoutMs, onTimeout: () => controller.abort() });
     let finish!: () => void;
     const active: ActiveRun = {
       runId: '',
