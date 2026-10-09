@@ -7,6 +7,7 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 - Slice 1: spike with Flash-Lite, see [SPIKE-ERGEBNISSE.md](SPIKE-ERGEBNISSE.md)
 - Slice 2: NestJS scaffold (config, Postgres, migrations proven in ESM, logs with request ids, host/origin check, checks, hooks)
 - Slice 3: accounts (register, login, logout, change password, profile with encrypted Gemini key)
+- Slice 8: confirm email and reset password (single-use hashed tokens, `MailSender` port with a logging default), unconfirmed accounts cannot start runs (`REQUIRE_EMAIL_CONFIRMATION`), list and end own logins, delete account; web pages and settings sections for all of it
 - Slices 4–6b: agent loop with SSE, Gemini adapter, project files and clone, file tools with approval and modes, run_command
 - Slice 7b: Playwright end-to-end paths (sign up, approval, file view; reload during a run) against the real API with the fake provider, `npm run e2e` (needs `npm run db:up`; uses database `coding_agent_e2e`)
 - Slice 7a: web app (Vite, React, Tailwind, OpenAPI types), sign-in, start page, chat with live steps, files panel, settings
@@ -15,7 +16,7 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 ## Next
 
 - Slice 7b rest: comparison against the template (`docs/DESIGN-ABGLEICH.md`), collapsed action groups, collapsed sidebar
-- Slice 8: mail flows (confirm email, reset password, sessions, delete account)
+- Slice 9: operations (metrics, traces, health checks, k6 load tests, decision on several instances)
 
 ## Open
 
@@ -35,7 +36,9 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 - Whether the Gemini key shares a Google project with other keys (shared 500 requests per day)
 
 - Profile: model name and limits as HTTP endpoints (service method `setModelName` exists) arrive with the Gemini adapter (slice 5)
-- Registration answers 202 for taken emails too; the confirmation mail (slice 8) makes that usable
+- No real mail provider yet: `LogMailSender` writes mails to the log. Add an SMTP/API adapter behind `MailSender` before opening registration.
+- The list of logins shows creation time and device, not the last activity (connect-pg-simple stores only the expiry).
+- No automated cleanup of expired `account_tokens` rows (they are small; a daily DELETE job is enough).
 
 ## Later
 

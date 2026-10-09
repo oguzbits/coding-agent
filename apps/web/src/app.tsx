@@ -1,5 +1,8 @@
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { AuthPage } from './auth/auth-page';
+import { ConfirmEmailPage } from './auth/confirm-email-page';
+import { ForgotPasswordPage } from './auth/forgot-password-page';
+import { ResetPasswordPage } from './auth/reset-password-page';
 import { RequireAuth } from './auth/require-auth';
 import { AppShell } from './layout/app-shell';
 import { ChatPage } from './pages/chat-page';
@@ -10,6 +13,9 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<AuthPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/confirm-email" element={<ConfirmEmailPage />} />
       <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
           <Route index element={<StartPage />} />

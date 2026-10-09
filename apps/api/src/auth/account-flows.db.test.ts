@@ -77,7 +77,7 @@ describe('confirming the email and resetting the password (HTTP)', () => {
 
   it('lets an unconfirmed account log in but not start a run, until the link was used', async () => {
     const a = await registerAndLogin();
-    expect((await get(a, '/auth/me')).body.emailConfirmed).toBe(false);
+    expect((await get(a, '/auth/me')).body).toMatchObject({ emailConfirmed: false, confirmationRequired: true });
     expect((await startRun(a)).status).toBe(403);
 
     expect((await post(a, '/auth/confirm-email', { token: tokenOf(lastMail()) })).status).toBe(204);

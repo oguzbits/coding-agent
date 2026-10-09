@@ -12,6 +12,7 @@ import {
   useUsage,
 } from '../api/queries';
 import { Button, ErrorText, Field, Section } from '../ui/controls';
+import { DeleteAccountSection, SessionsSection } from './settings-account';
 
 function GeminiKeySection() {
   const settings = useSettings();
@@ -197,6 +198,8 @@ export function SettingsPage() {
         <ModelSection />
         <ProjectsSection />
         <PasswordSection />
+        <SessionsSection />
+        <DeleteAccountSection />
       </div>
     </div>
   );

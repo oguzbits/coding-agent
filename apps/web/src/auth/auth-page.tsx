@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router';
+import { Link, Navigate, useNavigate } from 'react-router';
 import { useLogin, useMe, useRegister } from '../api/queries';
 import { Button, ErrorText, Field } from '../ui/controls';
 
@@ -35,7 +35,11 @@ export function AuthPage() {
         className="flex w-full max-w-sm flex-col gap-4 rounded-[15px] bg-surface p-6"
       >
         <h1 className="text-xl font-medium">{mode === 'login' ? 'Sign in' : 'Create an account'}</h1>
-        {created ? <p className="text-sm text-success">Account created. You can sign in now.</p> : null}
+        {created ? (
+          <p className="text-sm text-success">
+            Account created. Confirm your email with the link we sent, then sign in.
+          </p>
+        ) : null}
         <Field
           label="Email"
           type="email"
@@ -56,6 +60,11 @@ export function AuthPage() {
         <Button type="submit" variant="primary" disabled={login.isPending || register.isPending}>
           {mode === 'login' ? 'Sign in' : 'Create account'}
         </Button>
+        {mode === 'login' ? (
+          <Link to="/forgot-password" className="text-sm text-muted underline">
+            Forgot your password?
+          </Link>
+        ) : null}
         <button
           type="button"
           className="text-sm text-muted underline"

@@ -51,6 +51,9 @@ export class AccountDto {
 
   @ApiProperty({ description: 'False until the link from the confirmation mail was used.' })
   emailConfirmed!: boolean;
+
+  @ApiProperty({ description: 'True while unconfirmed accounts cannot start runs.' })
+  confirmationRequired!: boolean;
 }
 
 export class ConfirmEmailDto {

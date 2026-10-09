@@ -458,6 +458,8 @@ export interface components {
             email: string;
             /** @description False until the link from the confirmation mail was used. */
             emailConfirmed: boolean;
+            /** @description True while unconfirmed accounts cannot start runs. */
+            confirmationRequired: boolean;
         };
         ConfirmEmailDto: {
             token: string;

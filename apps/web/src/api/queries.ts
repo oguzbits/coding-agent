@@ -8,6 +8,7 @@ export const keys = {
   conversation: (id: string) => ['conversation', id] as const,
   settings: ['settings'] as const,
   usage: ['usage'] as const,
+  sessions: ['sessions'] as const,
   files: (projectId: string, path: string) => ['files', projectId, path] as const,
   file: (projectId: string, path: string) => ['file', projectId, path] as const,
 };
@@ -92,6 +93,38 @@ export const useLogout = () => {
   const client = useQueryClient();
   return useMutation({
     mutationFn: () => unwrap(api.POST('/api/auth/logout')),
+    onSuccess: () => {
+      client.clear();
+    },
+  });
+};
+
+export const useConfirmEmail = () =>
+  useAction((token: string) => unwrap(api.POST('/api/auth/confirm-email', { body: { token } })), [keys.me]);
+
+export const useResendConfirmation = () => useAction(() => unwrap(api.POST('/api/auth/resend-confirmation')), []);
+
+export const useForgotPassword = () =>
+  useAction((email: string) => unwrap(api.POST('/api/auth/forgot-password', { body: { email } })), []);
+
+export const useResetPassword = () =>
+  useAction((body: Schemas['ResetPasswordDto']) => unwrap(api.POST('/api/auth/reset-password', { body })), []);
+
+export const useSessions = () =>
+  useQuery({ queryKey: keys.sessions, queryFn: () => unwrap(api.GET('/api/auth/sessions')) });
+
+export const useEndSession = () =>
+  useAction(
+    (id: string) => unwrap(api.DELETE('/api/auth/sessions/{id}', { params: { path: { id } } })),
+    [keys.sessions],
+  );
+
+export const useEndOtherSessions = () => useAction(() => unwrap(api.DELETE('/api/auth/sessions')), [keys.sessions]);
+
+export const useDeleteAccount = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (password: string) => unwrap(api.DELETE('/api/auth/account', { body: { password } })),
     onSuccess: () => {
       client.clear();
     },

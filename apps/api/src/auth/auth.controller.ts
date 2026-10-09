@@ -14,7 +14,9 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiOkResponse } from '@nestjs/swagger';
+import type { Env } from '../config/env.validation.js';
 import type { Request, Response } from 'express';
 import { promisify } from 'node:util';
 import { EmailTakenError, RegistrationClosedError, UsersService } from '../users/users.service.js';
@@ -41,12 +43,17 @@ const USER_AGENT_MAX = 200;
 
 @Controller('auth')
 export class AuthController {
+  private readonly confirmationRequired: boolean;
+
   constructor(
     private readonly users: UsersService,
     private readonly authSessions: AuthSessionsService,
     private readonly flows: AccountFlowsService,
     private readonly deletion: AccountDeletionService,
-  ) {}
+    config: ConfigService<Env, true>,
+  ) {
+    this.confirmationRequired = config.get('REQUIRE_EMAIL_CONFIRMATION', { infer: true });
+  }
 
   /** Answers 202 whether or not the email was already taken, so the response does not reveal registered emails. */
   @Public()
@@ -162,6 +169,11 @@ export class AuthController {
 
   private toAccount(user: Express.User | undefined): AccountDto {
     if (!user) throw new ConflictException('Not logged in');
-    return { id: user.id, email: user.email, emailConfirmed: user.emailConfirmed };
+    return {
+      id: user.id,
+      email: user.email,
+      emailConfirmed: user.emailConfirmed,
+      confirmationRequired: this.confirmationRequired,
+    };
   }
 }

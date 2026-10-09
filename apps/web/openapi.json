@@ -966,12 +966,17 @@
           "emailConfirmed": {
             "type": "boolean",
             "description": "False until the link from the confirmation mail was used."
+          },
+          "confirmationRequired": {
+            "type": "boolean",
+            "description": "True while unconfirmed accounts cannot start runs."
           }
         },
         "required": [
           "id",
           "email",
-          "emailConfirmed"
+          "emailConfirmed",
+          "confirmationRequired"
         ]
       },
       "ConfirmEmailDto": {
