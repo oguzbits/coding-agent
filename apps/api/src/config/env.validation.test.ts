@@ -11,6 +11,13 @@ describe('validateEnv', () => {
     expect(env.HOST).toBe('127.0.0.1');
     expect(env.LOG_LEVEL).toBe('log');
     expect(env.ALLOWED_ORIGINS).toEqual(['http://localhost:5173']);
+    expect(env.TRUST_PROXY).toBe(0);
+  });
+
+  it('reads TRUST_PROXY as the number of proxies in front and rejects other values', () => {
+    expect(validateEnv({ ...valid, TRUST_PROXY: '2' }).TRUST_PROXY).toBe(2);
+    expect(() => validateEnv({ ...valid, TRUST_PROXY: '-1' })).toThrow(/TRUST_PROXY/);
+    expect(() => validateEnv({ ...valid, TRUST_PROXY: 'true' })).toThrow(/TRUST_PROXY/);
   });
 
   it('converts PORT to a number and splits ALLOWED_ORIGINS', () => {

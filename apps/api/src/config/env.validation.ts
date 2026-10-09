@@ -285,6 +285,12 @@ export class Env {
   @Min(1)
   SSE_HEARTBEAT_SECONDS = 15;
 
+  /** Number of reverse proxies in front of the API. Needed for the client address (rate limits, logs). */
+  @Transform(toNumber)
+  @IsInt()
+  @Min(0)
+  TRUST_PROXY = 0;
+
   @Transform(({ value }) =>
     typeof value === 'string'
       ? value

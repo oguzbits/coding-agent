@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Module, Post, type INestApplication } from '@nestjs/common';
+import { Body, Controller, Get, Module, Post, Req, type INestApplication } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 import { Test } from '@nestjs/testing';
 import { IsString, MinLength } from 'class-validator';
+import type { Request } from 'express';
 import request from 'supertest';
 import { configureApp } from './app.setup.js';
 import { validateEnv } from './config/env.validation.js';
@@ -19,6 +20,11 @@ class PingController {
   @Get()
   ping() {
     return { pong: true };
+  }
+
+  @Get('ip')
+  ip(@Req() req: Request) {
+    return { ip: req.ip };
   }
 
   @Post()
@@ -84,5 +90,31 @@ describe('configureApp', () => {
     expect(response.status).toBe(200);
     expect(response.body.paths['/api/ping'].post.requestBody).toBeDefined();
     expect(response.body.components.schemas.EchoDto.properties.text).toBeDefined();
+  });
+});
+
+describe('configureApp behind a reverse proxy', () => {
+  const clientIp = async (trustProxy: string) => {
+    const moduleRef = await Test.createTestingModule({ imports: [TestModule] }).compile();
+    const app = moduleRef.createNestApplication({ logger: false });
+    configureApp(app, validateEnv(testEnv({ PORT: '3000', LOG_LEVEL: 'error', TRUST_PROXY: trustProxy })));
+    await app.init();
+    try {
+      const response = await request(app.getHttpServer())
+        .get('/api/ping/ip')
+        .set('Host', 'localhost:3000')
+        .set('X-Forwarded-For', '203.0.113.7');
+      return response.body.ip as string;
+    } finally {
+      await app.close();
+    }
+  };
+
+  it('ignores X-Forwarded-For by default, so a client cannot pick its own address', async () => {
+    expect(await clientIp('0')).not.toBe('203.0.113.7');
+  });
+
+  it('uses the address the proxy reports when TRUST_PROXY says one proxy is in front', async () => {
+    expect(await clientIp('1')).toBe('203.0.113.7');
   });
 });

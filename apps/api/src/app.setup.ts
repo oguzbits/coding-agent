@@ -11,6 +11,8 @@ import { createOriginHostMiddleware } from './security/origin-host.middleware.js
 export function configureApp(app: INestApplication, env: Env) {
   app.useLogger(new JsonLogger(env.LOG_LEVEL));
   app.setGlobalPrefix('api', { exclude: ['metrics'] });
+  // Behind a proxy every client would share the proxy's address, and with it one rate-limit bucket.
+  if (env.TRUST_PROXY > 0) app.getHttpAdapter().getInstance().set('trust proxy', env.TRUST_PROXY);
 
   const strict = helmet();
   const forSwaggerUi = helmet({ contentSecurityPolicy: false });
