@@ -51,7 +51,7 @@ function setup(script: ConstructorParameters<typeof FakeProvider>[0], overrides:
   const deps: AgentDeps = {
     provider,
     tools: [makeTool('echo', (args) => `echoed ${args.value}`)],
-    policy: { decide: () => decision },
+    policy: { decide: async () => decision },
     approvals: {
       request: (_id, signal) => (typeof approvalAnswer === 'function' ? approvalAnswer(signal) : approvalAnswer),
     },

@@ -21,7 +21,7 @@ function deps(script: ConstructorParameters<typeof FakeProvider>[0]): AgentDeps 
   return {
     provider: new FakeProvider(script),
     tools: [echo],
-    policy: { decide: () => 'allow' },
+    policy: { decide: async () => 'allow' },
     approvals: { request: async () => true },
     sink: { emit: async () => undefined, appendHistory: async () => undefined, setState: async () => undefined },
     limits: { maxSteps: 5, historyTokenBudget: 10_000, repeatFailureLimit: 3, toolOutputMaxChars: 200 },

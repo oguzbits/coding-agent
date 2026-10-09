@@ -42,7 +42,7 @@ export function createWriteFileTool(
       'Prefer edit_file for small changes.',
     kind: 'edit',
     schema,
-    targets: (args) => [args.path],
+    targets: async (args) => [await workspace.realTarget(args.path)],
     precheck: async (args) => {
       await check(args);
     },

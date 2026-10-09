@@ -39,7 +39,7 @@ export interface AgentTool<Schema extends z.ZodType = z.ZodType> {
   kind: ToolKind;
   schema: Schema;
   /** The paths (relative to the project) the call would change. The policy asks more carefully for some of them. */
-  targets?(args: z.infer<Schema>): string[];
+  targets?(args: z.infer<Schema>): Promise<string[]>;
   /** Fails with a ToolError if the call cannot work, so the user is not asked to approve something doomed. */
   precheck?(args: z.infer<Schema>): Promise<void>;
   /** What will happen, for the approval dialog (a diff, a command line). */
@@ -50,7 +50,7 @@ export interface AgentTool<Schema extends z.ZodType = z.ZodType> {
 export type PolicyDecision = 'allow' | 'ask' | 'reject';
 
 export interface ToolPolicy {
-  decide(tool: AgentTool, args: unknown): PolicyDecision;
+  decide(tool: AgentTool, args: unknown): Promise<PolicyDecision>;
 }
 
 interface ApprovalGate {

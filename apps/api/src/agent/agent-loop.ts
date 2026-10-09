@@ -186,7 +186,7 @@ async function handleCall(deps: AgentDeps, call: ToolCall): Promise<ToolResultFo
   const failure = await runStep(() => tool.precheck?.(parsed.data));
   if (failure) return finish(failure, true);
 
-  const decision = deps.policy.decide(tool, parsed.data);
+  const decision = await deps.policy.decide(tool, parsed.data);
   if (decision === 'reject') return finish('This action is not allowed in the current mode.', true);
   if (decision === 'ask') {
     const preview = await tool.preview(parsed.data).catch(() => 'No preview available.');

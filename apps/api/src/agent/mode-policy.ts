@@ -20,17 +20,19 @@ export class ModePolicy implements ToolPolicy {
     this.selfExecuting = selfExecuting.map((entry) => entry.toLowerCase());
   }
 
-  decide(tool: AgentTool, args: unknown): PolicyDecision {
+  async decide(tool: AgentTool, args: unknown): Promise<PolicyDecision> {
     if (tool.kind === 'read') return 'allow';
     if (this.mode === 'plan') return 'reject';
-    if (tool.kind === 'edit' && this.mode === 'auto_edit' && !this.touchesSelfExecuting(tool, args)) return 'allow';
+    if (tool.kind === 'edit' && this.mode === 'auto_edit' && !(await this.touchesSelfExecuting(tool, args))) {
+      return 'allow';
+    }
     return 'ask';
   }
 
   /** True when the edit may touch a file that runs code later, or when we cannot tell what it touches. */
-  private touchesSelfExecuting(tool: AgentTool, args: unknown): boolean {
+  private async touchesSelfExecuting(tool: AgentTool, args: unknown): Promise<boolean> {
     if (!tool.targets) return true;
-    return tool.targets(args).some((target) => this.isSelfExecuting(target));
+    return (await tool.targets(args)).some((target) => this.isSelfExecuting(target));
   }
 
   private isSelfExecuting(target: string): boolean {

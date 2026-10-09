@@ -278,7 +278,9 @@ describe('workspace tools', () => {
       const diff = await preview('edit_file', { path: 'a.txt', old_string: 'alpha', new_string: 'ALPHA' });
       expect(diff).toContain('-alpha');
       expect(diff).toContain('+ALPHA');
-      expect(tools.edit_file.targets?.({ path: 'a.txt' })).toEqual(['a.txt']);
+      expect(await tools.edit_file.targets?.({ path: 'a.txt', old_string: 'x', new_string: 'y' } as never)).toEqual([
+        'a.txt',
+      ]);
     });
 
     it('refuses protected and outside paths', async () => {
@@ -286,6 +288,25 @@ describe('workspace tools', () => {
         /protected/i,
       );
       await expect(run('edit_file', { path: '../x', old_string: 'a', new_string: 'b' })).rejects.toThrow(/outside/i);
+    });
+  });
+
+  describe('targets of edits', () => {
+    it.each([
+      ['edit_file', { path: 'notes.md', old_string: 'a', new_string: 'b' }],
+      ['write_file', { path: 'notes.md', content: 'c' }],
+    ])('%s names the real file behind a symlink', async (name, input) => {
+      await put('package.json', '{}');
+      await symlink(path.join(root, 'package.json'), path.join(root, 'notes.md'));
+      expect(await tools[name].targets?.(tools[name].schema.parse(input))).toEqual(['package.json']);
+    });
+
+    it('refuses a symlink to a protected file', async () => {
+      await put('.env', 'SECRET=1');
+      await symlink(path.join(root, '.env'), path.join(root, 'notes.md'));
+      await expect(
+        tools.write_file.precheck?.(tools.write_file.schema.parse({ path: 'notes.md', content: 'x' })),
+      ).rejects.toThrow(/protected/i);
     });
   });
 

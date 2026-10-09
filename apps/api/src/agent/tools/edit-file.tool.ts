@@ -80,7 +80,7 @@ export function createEditFileTool(
       '(or set replace_all). Returns the changed lines.',
     kind: 'edit',
     schema,
-    targets: (args) => [args.path],
+    targets: async (args) => [await workspace.realTarget(args.path)],
     precheck: async (args) => {
       await ensureRead(args);
     },

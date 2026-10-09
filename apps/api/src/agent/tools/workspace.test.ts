@@ -50,6 +50,14 @@ describe('Workspace', () => {
     await expect(workspace.resolve('src/file-link')).rejects.toThrow(/outside the workspace/i);
   });
 
+  it('names the file a symlink points to when asked for the real target', async () => {
+    await writeFile(path.join(root, 'package.json'), '{}');
+    await symlink(path.join(root, 'package.json'), path.join(root, 'src', 'notes.md'));
+    expect(await workspace.realTarget('src/notes.md')).toBe('package.json');
+    expect(await workspace.realTarget('src/new.md')).toBe('src/new.md');
+    await expect(workspace.realTarget('src/file-link-missing/../../..')).rejects.toBeInstanceOf(ToolError);
+  });
+
   it('rejects empty paths and NUL bytes', async () => {
     await expect(workspace.resolve('')).rejects.toBeInstanceOf(ToolError);
     await expect(workspace.resolve('src/a.txt\0.png')).rejects.toBeInstanceOf(ToolError);

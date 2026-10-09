@@ -18,6 +18,16 @@ export class Workspace {
   constructor(readonly root: string) {}
 
   async resolve(requested: string): Promise<string> {
+    return (await this.check(requested)).lexical;
+  }
+
+  /** The path the request really ends up at (symlinks followed), relative to the root. The policy judges by it. */
+  async realTarget(requested: string): Promise<string> {
+    const { root, real } = await this.check(requested);
+    return path.relative(root, real).split(path.sep).join('/');
+  }
+
+  private async check(requested: string): Promise<{ root: string; lexical: string; real: string }> {
     if (!requested.trim() || requested.includes('\0')) throw new ToolError('The path is empty or invalid.');
     this.realRoot ??= realpath(this.root);
     const root = await this.realRoot;
@@ -28,7 +38,7 @@ export class Workspace {
     const real = await this.realpathOfExisting(lexical);
     this.assertInside(root, real);
     this.assertNotProtected(root, real);
-    return lexical;
+    return { root, lexical, real };
   }
 
   /** Lexical check of a path relative to the root. Used to filter listings and search results. */
