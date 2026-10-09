@@ -18,6 +18,7 @@ import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import { EmailConfirmedGuard } from '../auth/email-confirmed.guard.js';
+import { Metrics } from '../metrics/metrics.js';
 import type { Env } from '../config/env.validation.js';
 import {
   ApprovalDto,
@@ -51,6 +52,7 @@ export class ConversationsController {
     private readonly runs: RunsService,
     private readonly events: RunEventsService,
     private readonly config: ConfigService<Env, true>,
+    private readonly metrics: Metrics,
   ) {}
 
   @Post()
@@ -157,9 +159,11 @@ export class ConversationsController {
       () => res.write(': heartbeat\n\n'),
       this.config.get('SSE_HEARTBEAT_SECONDS', { infer: true }) * 1000,
     );
+    this.metrics.channelOpened();
     res.on('close', () => {
       clearInterval(heartbeat);
       unsubscribe();
+      this.metrics.channelClosed();
     });
   }
 }

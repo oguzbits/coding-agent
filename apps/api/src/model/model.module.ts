@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import type { Env } from '../config/env.validation.js';
+import { Metrics } from '../metrics/metrics.js';
 import { UsersModule } from '../users/users.module.js';
 import { UsersService } from '../users/users.service.js';
 import { DemoProvider } from './fake/demo-provider.js';
@@ -27,9 +28,26 @@ import { TypeOrmCallLog, TypeOrmUsageStore } from './usage/usage.stores.js';
     },
     {
       provide: RateLimiter,
-      inject: [TypeOrmUsageStore, TypeOrmCallLog],
-      useFactory: (usage: TypeOrmUsageStore, log: TypeOrmCallLog) =>
-        new RateLimiter({ ...defaultRateLimiterDeps, usage, log }),
+      inject: [TypeOrmUsageStore, TypeOrmCallLog, Metrics],
+      useFactory: (usage: TypeOrmUsageStore, log: TypeOrmCallLog, metrics: Metrics) =>
+        new RateLimiter({
+          ...defaultRateLimiterDeps,
+          usage,
+          log: {
+            record: async (record) => {
+              metrics.modelCall(record);
+              await log.record(record);
+            },
+          },
+          sleep: async (ms, signal) => {
+            const started = Date.now();
+            try {
+              await defaultRateLimiterDeps.sleep(ms, signal);
+            } finally {
+              metrics.limiterWaited((Date.now() - started) / 1000);
+            }
+          },
+        }),
     },
     {
       provide: ModelGateway,

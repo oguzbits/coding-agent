@@ -12,6 +12,7 @@ import { repairHistory } from '../agent/repair-history.js';
 import { runAgent } from '../agent/agent-loop.js';
 import type { ToolSession } from '../agent/tools/create-tools.js';
 import type { AgentLimits, AgentTool, RunEvent, RunSink, RunState, ToolPolicy } from '../agent/types.js';
+import { Metrics, type RunEnd } from '../metrics/metrics.js';
 import { requestContext } from '../logging/request-context.js';
 import type { HistoryEntry, ModelProvider } from '../model/model-provider.js';
 import { ModelGateway, type PreparedModel } from '../model/model.gateway.js';
@@ -60,6 +61,7 @@ export class RunsService implements OnApplicationBootstrap {
     @Inject(AGENT_POLICY) private readonly createPolicy: PolicyFactory,
     @Inject(AGENT_LIMITS) private readonly limits: AgentLimits,
     @Inject(AGENT_SYSTEM_PROMPT) private readonly systemPrompt: string,
+    private readonly metrics: Metrics,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -161,6 +163,7 @@ export class RunsService implements OnApplicationBootstrap {
     return this.conversations.appendUserParts(conversationId, format.userMessageParts(text));
   }
 
+  /** Runs the agent and counts the run, whatever way it ends. */
   private async execute(
     userId: string,
     conversation: Conversation,
@@ -168,16 +171,35 @@ export class RunsService implements OnApplicationBootstrap {
     history: HistoryEntry[],
     prepared: PreparedModel,
   ): Promise<void> {
+    this.metrics.runStarted();
+    const started = Date.now();
+    let outcome: Pick<RunEnd, 'state' | 'steps'> = { state: 'failed' };
+    try {
+      outcome = await this.runLoop(userId, conversation, active, history, prepared);
+    } finally {
+      this.metrics.runEnded({ ...outcome, seconds: (Date.now() - started) / 1000 });
+    }
+  }
+
+  private async runLoop(
+    userId: string,
+    conversation: Conversation,
+    active: ActiveRun,
+    history: HistoryEntry[],
+    prepared: PreparedModel,
+  ): Promise<Pick<RunEnd, 'state' | 'steps'>> {
     const { runId } = active;
     const conversationId = conversation.id;
     const workspace = new Workspace(this.projects.directoryOf(userId, conversation.projectId));
     const runs = this.dataSource.getRepository(Run);
     let failureCode: string | undefined;
     let pending: Run['pendingApproval'] = null;
+    const outcome: Pick<RunEnd, 'state' | 'steps'> = { state: 'failed' };
 
     const sink: RunSink = {
       emit: async (event: RunEvent) => {
         if (event.type === 'run_failed') failureCode = event.code;
+        if (event.type === 'run_finished') outcome.steps = event.steps;
         if (event.type === 'approval_requested')
           pending = { callId: event.callId, name: event.name, preview: event.preview };
         await this.events.append(conversationId, runId, event);
@@ -188,6 +210,7 @@ export class RunsService implements OnApplicationBootstrap {
       },
       setState: async (state) => {
         const terminal = TERMINAL_STATES.includes(state);
+        if (terminal) outcome.state = state as RunEnd['state'];
         await runs.update(
           { id: runId },
           {
@@ -221,6 +244,7 @@ export class RunsService implements OnApplicationBootstrap {
       this.logger.error(`Run ${runId} failed: ${error instanceof Error ? error.message : 'unknown error'}`);
       await this.markFailed(conversationId, runId);
     }
+    return outcome;
   }
 
   private sessionOf(conversation: Conversation): ToolSession {

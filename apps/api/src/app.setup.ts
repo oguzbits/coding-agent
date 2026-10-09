@@ -10,7 +10,7 @@ import { createOriginHostMiddleware } from './security/origin-host.middleware.js
 /** Everything that turns a Nest app into this app. Used by main.ts and by tests, so both run the same pipeline. */
 export function configureApp(app: INestApplication, env: Env) {
   app.useLogger(new JsonLogger(env.LOG_LEVEL));
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', { exclude: ['metrics'] });
 
   const strict = helmet();
   const forSwaggerUi = helmet({ contentSecurityPolicy: false });

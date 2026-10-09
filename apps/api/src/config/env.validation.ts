@@ -106,6 +106,13 @@ export class Env {
   @IsBoolean()
   COOKIE_SECURE?: boolean;
 
+  /** Switches /metrics on. Scrapers send it as a bearer token. Without it the endpoint does not exist. */
+  @IsOptional()
+  @IsString()
+  @MinLength(16)
+  @MaxLength(512)
+  METRICS_TOKEN?: string;
+
   @IsIn(LOG_LEVELS)
   LOG_LEVEL: (typeof LOG_LEVELS)[number] = 'log';
 
