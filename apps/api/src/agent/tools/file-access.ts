@@ -47,3 +47,16 @@ export function diffPreview(file: string, before: string, after: string): string
   const patch = createTwoFilesPatch(file, file, before, after, '', '', { context: 3 });
   return patch.length > PREVIEW_MAX_CHARS ? `${patch.slice(0, PREVIEW_MAX_CHARS)}\n[diff shortened]` : patch;
 }
+
+export interface StorageLimit {
+  /** Bytes the user may still store, counted over all projects. Leave out for no limit. */
+  storageLeft?: (workspaceRoot: string) => Promise<number>;
+}
+
+/** Refuses a change that grows the user's stored data beyond what is left. Shrinking is always allowed. */
+export async function assertRoomFor(growth: number, workspace: Workspace, limits: StorageLimit): Promise<void> {
+  if (growth <= 0 || !limits.storageLeft) return;
+  if (growth > (await limits.storageLeft(workspace.root))) {
+    throw new ToolError('Your storage is full. Ask the user to delete a project or files to make room.');
+  }
+}

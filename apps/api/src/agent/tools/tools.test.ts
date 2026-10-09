@@ -310,6 +310,36 @@ describe('workspace tools', () => {
     });
   });
 
+  describe('storage of the user', () => {
+    const withRoom = (bytes: number) => {
+      const small = createWorkspaceTools(workspace, session, { ...limits, storageLeft: async () => bytes });
+      return Object.fromEntries(small.map((tool) => [tool.name, tool]));
+    };
+
+    it('refuses a write that does not fit into what is left', async () => {
+      const limited = withRoom(5);
+      const args = limited.write_file.schema.parse({ path: 'a.txt', content: 'x'.repeat(6) });
+      await expect(limited.write_file.precheck?.(args)).rejects.toThrow(/storage/i);
+      const fits = limited.write_file.schema.parse({ path: 'a.txt', content: 'x'.repeat(5) });
+      await expect(limited.write_file.precheck?.(fits)).resolves.toBeUndefined();
+    });
+
+    it('only counts the growth when a file is replaced or edited', async () => {
+      await put('a.txt', `MARK${'x'.repeat(6)}`);
+      await run('read_file', { path: 'a.txt' });
+      const limited = withRoom(2);
+      const replace = limited.write_file.schema.parse({ path: 'a.txt', content: 'y'.repeat(12) });
+      await expect(limited.write_file.precheck?.(replace)).resolves.toBeUndefined();
+      const tooMuch = limited.write_file.schema.parse({ path: 'a.txt', content: 'y'.repeat(13) });
+      await expect(limited.write_file.precheck?.(tooMuch)).rejects.toThrow(/storage/i);
+
+      const grow = limited.edit_file.schema.parse({ path: 'a.txt', old_string: 'MARK', new_string: 'M'.repeat(8) });
+      await expect(limited.edit_file.precheck?.(grow)).rejects.toThrow(/storage/i);
+      const shrink = limited.edit_file.schema.parse({ path: 'a.txt', old_string: 'MARKxxxx', new_string: 'z' });
+      await expect(limited.edit_file.precheck?.(shrink)).resolves.toBeUndefined();
+    });
+  });
+
   describe('write_file', () => {
     it('creates a file and missing folders, and counts it as read', async () => {
       const output = await run('write_file', { path: 'new/dir/x.txt', content: 'hello\n' });

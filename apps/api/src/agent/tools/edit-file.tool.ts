@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { ToolError, type AgentTool } from '../types.js';
-import { diffPreview, numberLine, readTextFile, splitLines } from './file-access.js';
+import { assertRoomFor, diffPreview, numberLine, readTextFile, splitLines, type StorageLimit } from './file-access.js';
 import type { Workspace } from './workspace.js';
 
 const CONTEXT_LINES = 2;
@@ -61,6 +61,7 @@ function snippet(change: Change, newString: string): string {
 export function createEditFileTool(
   workspace: Workspace,
   session: { readFiles: Set<string> },
+  limits: StorageLimit = {},
 ): AgentTool<typeof schema> {
   const prepare = async (args: z.infer<typeof schema>): Promise<Change> => {
     const { target, text } = await readTextFile(workspace, args.path);
@@ -71,6 +72,7 @@ export function createEditFileTool(
     if (!session.readFiles.has(change.target)) {
       throw new ToolError(`Read ${args.path} with read_file first, then edit it.`);
     }
+    await assertRoomFor(Buffer.byteLength(change.after) - Buffer.byteLength(change.before), workspace, limits);
     return change;
   };
   return {

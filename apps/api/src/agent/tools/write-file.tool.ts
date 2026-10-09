@@ -2,10 +2,10 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 import { ToolError, type AgentTool } from '../types.js';
-import { diffPreview, readTextFile, statOrUndefined } from './file-access.js';
+import { assertRoomFor, diffPreview, readTextFile, statOrUndefined, type StorageLimit } from './file-access.js';
 import type { Workspace } from './workspace.js';
 
-export interface WriteLimits {
+export interface WriteLimits extends StorageLimit {
   writeMaxBytes: number;
 }
 
@@ -33,6 +33,7 @@ export function createWriteFileTool(
     if (info && !session.readFiles.has(target)) {
       throw new ToolError(`Read ${args.path} with read_file first, then replace it.`);
     }
+    await assertRoomFor(size - (info?.size ?? 0), workspace, limits);
     return { target, exists: info !== undefined };
   };
   return {

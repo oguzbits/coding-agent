@@ -2,10 +2,12 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { rgPath } from '@vscode/ripgrep';
+import path from 'node:path';
 import { ModePolicy, PERMISSION_MODES, type PermissionMode } from '../agent/mode-policy.js';
 import { SYSTEM_PROMPT } from '../agent/system-prompt.js';
 import { createWorkspaceTools, type ToolLimits, type ToolSession } from '../agent/tools/create-tools.js';
 import { Workspace } from '../agent/tools/workspace.js';
+import { directorySize } from '../projects/disk-usage.js';
 import { ProjectsModule } from '../projects/projects.module.js';
 import type { AgentLimits, AgentTool } from '../agent/types.js';
 import type { Env } from '../config/env.validation.js';
@@ -81,6 +83,8 @@ type AppConfig = ConfigService<Env, true>;
           commandMaxTimeoutMs: config.get('AGENT_COMMAND_MAX_TIMEOUT_SECONDS', { infer: true }) * 1000,
           commandOutputMaxChars: config.get('AGENT_COMMAND_OUTPUT_MAX_CHARS', { infer: true }),
           commandKillGraceMs: config.get('AGENT_COMMAND_KILL_GRACE_MS', { infer: true }),
+          storageLeft: async (workspaceRoot) =>
+            config.get('USER_STORAGE_MAX_BYTES', { infer: true }) - (await directorySize(path.dirname(workspaceRoot))),
           rgPath,
         };
         return (workspace: Workspace, session: ToolSession): AgentTool[] =>
