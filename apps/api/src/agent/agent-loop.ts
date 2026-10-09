@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { withSpan } from '../tracing/with-span.js';
 import {
   ModelError,
   type ModelTurn,
@@ -33,16 +34,20 @@ type Ending = { kind: 'aborted' } | { kind: 'failed'; code: FailureCode; message
 
 async function callModel(deps: AgentDeps, input: AgentInput, declarations: ToolDeclaration[]): Promise<ModelStep> {
   try {
-    const turn = await deps.provider.generate(
-      {
-        model: input.model,
-        apiKey: input.apiKey,
-        systemPrompt: deps.systemPrompt,
-        history: input.history,
-        tools: declarations,
-      },
-      deps.signal,
-    );
+    const turn = await withSpan('model.call', { 'model.name': input.model }, async (span) => {
+      const answer = await deps.provider.generate(
+        {
+          model: input.model,
+          apiKey: input.apiKey,
+          systemPrompt: deps.systemPrompt,
+          history: input.history,
+          tools: declarations,
+        },
+        deps.signal,
+      );
+      span.setAttributes({ 'tokens.input': answer.usage.promptTokens, 'tokens.output': answer.usage.outputTokens });
+      return answer;
+    });
     return { kind: 'turn', turn };
   } catch (error) {
     if (isAbort(error)) return { kind: 'end', outcome: { kind: 'aborted' } };
@@ -66,7 +71,11 @@ async function runToolCalls(deps: AgentDeps, calls: ToolCall[], streak: Streak) 
       continue;
     }
     try {
-      const answer = await handleCall(deps, call);
+      const answer = await withSpan('tool.call', { 'tool.name': call.name }, async (span) => {
+        const result = await handleCall(deps, call);
+        span.setAttribute('tool.error', result.isError);
+        return result;
+      });
       answers.push(answer);
       streak = nextStreak(streak, call, answer.isError);
     } catch (error) {
@@ -82,7 +91,15 @@ async function runToolCalls(deps: AgentDeps, calls: ToolCall[], streak: Streak) 
  * The agent loop: call the model, run the tools it asks for, send the results back, repeat until the model answers
  * without tools. It knows neither HTTP nor the database; everything it touches comes in through `deps`.
  */
-export async function runAgent(deps: AgentDeps, input: AgentInput): Promise<RunOutcome> {
+export function runAgent(deps: AgentDeps, input: AgentInput): Promise<RunOutcome> {
+  return withSpan('agent.run', { 'model.name': input.model }, async (span) => {
+    const outcome = await runLoop(deps, input);
+    span.setAttributes({ 'run.state': outcome.state, 'run.steps': outcome.steps });
+    return outcome;
+  });
+}
+
+async function runLoop(deps: AgentDeps, input: AgentInput): Promise<RunOutcome> {
   const { provider, sink, limits, signal } = deps;
   const declarations = toDeclarations(deps.tools);
   const usage: TokenUsage = { promptTokens: 0, outputTokens: 0 };
