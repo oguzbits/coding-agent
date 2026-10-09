@@ -131,7 +131,10 @@ body {
   scrollbar-color: var(--oh-border) transparent;
 }
 
-:focus-visible {
-  outline: 2px solid var(--oh-contrast);
-  outline-offset: 2px;
+/* In the base layer so utilities like focus-visible:outline-none win; an unlayered rule would beat them. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--oh-contrast);
+    outline-offset: 2px;
+  }
 }

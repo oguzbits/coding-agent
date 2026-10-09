@@ -16,7 +16,7 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 
 ## Next
 
-- Slice 7b rest: comparison against the template (`docs/DESIGN-ABGLEICH.md`), collapsed action groups, collapsed sidebar
+- Slice 7b rest: close the deviations in [DESIGN-ABGLEICH.md](DESIGN-ABGLEICH.md) (first measured pass done), compare light theme and chat view, collapsed action groups, collapsed sidebar
 
 ## Open
 
