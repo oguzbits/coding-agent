@@ -16,19 +16,13 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 
 ## Next
 
-- Slice 7b rest: close the deviations in [DESIGN-ABGLEICH.md](DESIGN-ABGLEICH.md) (first measured pass done), compare light theme and chat view, collapsed action groups, collapsed sidebar
+- Slice 7b rest: compare light theme and chat view with OpenHands (see [DESIGN-ABGLEICH.md](DESIGN-ABGLEICH.md))
 
 ## Open
 
 - Load tests: stress to the breaking point, endurance run, then set thresholds; add a `load-smoke` job to the (unpushed) CI workflow.
-- Review leftovers (minor): timing differences reveal whether an email is registered (register/forgot-password); change-password
-  does not invalidate outstanding reset tokens and `issue()` is not transactional; change-password and account deletion are not
-  in the strict throttle bucket; the approval waiter is registered after two DB writes (an early approval can get 404);
-  model-supplied call ids can repeat (use server-side ids); tokens stay in the URL on confirm/reset pages; the Host check
-  answers 421 for probes by IP (load balancer health checks); `authTagLength` not pinned, first-account check not atomic,
-  orphaned folders when deleting during clone/run.
-- Without a real `MailSender`, production logs recipient and subject only; mails are not delivered.
-- A run waiting for an approval has no time limit and blocks the user's single active run.
+- Mails go out only when `MAIL_API_KEY` and `MAIL_FROM` are set (Resend HTTP API, tested offline with a stubbed `fetch`;
+  not tried against the real provider). Without them production logs recipient and subject only.
 - No span for the HTTP request itself (auto-instrumentation does not hook into ESM reliably); spans cover run, model call and tool call.
 - The SSE channel gauge has no HTTP test; the gauge itself is unit-tested.
 
@@ -38,19 +32,12 @@ State, open items and later ideas. The plan itself is in [PLAN.md](PLAN.md).
 - `.npmrc` sets `legacy-peer-deps=true` because `openapi-typescript` still declares a peer range without TypeScript 6; drop it
   once a release supports it.
 - ZIP download uses `yazl` (small, streaming) instead of the `archiver` named in the plan.
-- The per-user storage limit is checked when cloning only, not for files the agent writes.
-- `ActiveRunDto.pendingApproval` is nullable in the API but typed as required in the OpenAPI document.
-- A clone keeps running when the client disconnects (it is not tied to the request).
-- Assistant text is shown as plain text; Markdown rendering is open.
 - 429 response body (minute vs. day limit, wait time): measure in slice 5
 - Several tool calls in one response; thought tokens against the minute limit
 - Harder tasks than the spike (larger repos, unclear failures)
 - Whether the Gemini key shares a Google project with other keys (shared 500 requests per day)
 
-- Profile: model name and limits as HTTP endpoints (service method `setModelName` exists) arrive with the Gemini adapter (slice 5)
-- No real mail provider yet: `LogMailSender` writes mails to the log. Add an SMTP/API adapter behind `MailSender` before opening registration.
 - The list of logins shows creation time and device, not the last activity (connect-pg-simple stores only the expiry).
-- No automated cleanup of expired `account_tokens` rows (they are small; a daily DELETE job is enough).
 
 ## Later
 

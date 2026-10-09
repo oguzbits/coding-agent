@@ -457,6 +457,25 @@ describe('conversations and runs (HTTP, fake model)', () => {
       expect(ids(stream.text)).toEqual([1, 2, 3, 4]);
     });
 
+    it('counts an open event stream and stops counting when the client leaves', async () => {
+      const id = await createConversation(alice);
+      const metrics = app.get(Metrics);
+      const open = async () => Number(/^sse_open_channels (\d+)$/m.exec(await metrics.render())?.[1]);
+      const before = await open();
+      const req = http.get({
+        host: '127.0.0.1',
+        port,
+        path: `/api/conversations/${id}/events`,
+        headers: { Host: 'localhost:3000', Cookie: aliceCookie },
+      });
+      req.on('response', (res) => res.resume());
+      req.on('error', () => undefined);
+
+      await vi.waitFor(async () => expect(await open()).toBe(before + 1));
+      req.destroy();
+      await vi.waitFor(async () => expect(await open()).toBe(before));
+    });
+
     it('closes the stream when the login behind it ends', async () => {
       const id = await createConversation(alice);
       const closed = new Promise<void>((resolve, reject) => {
