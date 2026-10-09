@@ -37,3 +37,9 @@ export async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {
   if (!response.ok) throw new ApiError(response.status, messageOf(error, `Request failed (${response.status})`));
   return data as T;
 }
+
+/** Query retry policy: answers like 404 or 403 will not change, so only server and network failures are retried. */
+export function shouldRetry(failureCount: number, error: unknown): boolean {
+  if (error instanceof ApiError && error.status < 500) return false;
+  return failureCount < 2;
+}

@@ -54,13 +54,16 @@ function ConversationList() {
   );
 }
 
-export function Sidebar() {
+/** `open` only matters on narrow screens, where the sidebar is hidden until the menu button opens it. */
+export function Sidebar({ open = false }: { open?: boolean }) {
   const me = useMe();
   const logout = useLogout();
   const navigate = useNavigate();
   return (
     <nav
-      className="flex h-full w-[300px] shrink-0 flex-col gap-2 border-r border-line-subtle bg-surface p-3"
+      className={`flex h-full w-[300px] shrink-0 flex-col gap-2 border-r border-line-subtle bg-surface p-3 ${
+        open ? 'max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-20 max-md:shadow-xl' : 'max-md:hidden'
+      }`}
       aria-label="Sidebar"
     >
       <NavLink to="/" end className={`${ROW} bg-contrast text-on-contrast hover:bg-contrast hover:opacity-90`}>

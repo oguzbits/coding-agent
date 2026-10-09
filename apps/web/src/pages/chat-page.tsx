@@ -1,6 +1,6 @@
 import { FolderTree } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   keys,
@@ -13,9 +13,23 @@ import {
 import { Composer } from '../chat/composer';
 import { MessageList } from '../chat/message-list';
 import { ModeSelect } from '../chat/mode-select';
+import { useComposerGate } from '../chat/use-composer-gate';
 import { useRunStream } from '../chat/use-run-stream';
 import { FilesPanel } from '../files/files-panel';
+import { ApiError } from '../api/client';
 import { Button, ErrorText } from '../ui/controls';
+
+function ConversationError({ error }: { error: Error }) {
+  if (!(error instanceof ApiError && error.status === 404)) return <p className="p-6 text-danger">{error.message}</p>;
+  return (
+    <div className="flex flex-col items-start gap-3 p-6">
+      <p>This conversation does not exist (any more).</p>
+      <Link to="/" className="text-sm underline">
+        Start a new chat
+      </Link>
+    </div>
+  );
+}
 
 export function ChatPage() {
   const { id = '' } = useParams();
@@ -25,6 +39,7 @@ export function ChatPage() {
   const abort = useAbort(id);
   const answer = useAnswerApproval(id);
   const update = useUpdateConversation(id);
+  const gate = useComposerGate(send.isPending);
   const client = useQueryClient();
   const [showFiles, setShowFiles] = useState(false);
 
@@ -32,7 +47,7 @@ export function ChatPage() {
     if (!chat.running) void client.invalidateQueries({ queryKey: keys.usage });
   }, [chat.running, client]);
 
-  if (conversation.isError) return <p className="p-6 text-danger">{conversation.error.message}</p>;
+  if (conversation.isError) return <ConversationError error={conversation.error} />;
   if (!conversation.data) return <p className="p-6 text-muted">Loading…</p>;
 
   const failure = send.error ?? answer.error ?? abort.error ?? update.error;
@@ -62,9 +77,14 @@ export function ChatPage() {
           <ErrorText error={failure} />
           <Composer
             running={chat.running}
-            disabled={send.isPending}
+            {...gate}
             onStop={() => abort.mutate()}
-            onSubmit={(text) => send.mutate({ id, text })}
+            onSubmit={(text) =>
+              send.mutateAsync({ id, text }).then(
+                () => true,
+                () => false,
+              )
+            }
           />
         </div>
       </div>

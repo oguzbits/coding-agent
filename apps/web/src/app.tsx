@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { AuthPage } from './auth/auth-page';
 import { ConfirmEmailPage } from './auth/confirm-email-page';
 import { ForgotPasswordPage } from './auth/forgot-password-page';
@@ -12,7 +12,8 @@ import { StartPage } from './pages/start-page';
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<AuthPage />} />
+      <Route path="/login" element={<AuthPage mode="login" />} />
+      <Route path="/register" element={<AuthPage mode="register" />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/confirm-email" element={<ConfirmEmailPage />} />
@@ -23,6 +24,7 @@ function AppRoutes() {
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

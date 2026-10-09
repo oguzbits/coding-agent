@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useCreateConversation, useCreateProject, useProjects, useSendMessage } from '../api/queries';
 import { Composer } from '../chat/composer';
+import { useComposerGate } from '../chat/use-composer-gate';
 import { ErrorText, Field, inputStyle } from '../ui/controls';
 
 const NEW_PROJECT = 'new';
@@ -26,8 +27,10 @@ export function StartPage() {
   const list = projects.data ?? [];
   const choice = selected ?? list[0]?.id ?? NEW_PROJECT;
   const creating = choice === NEW_PROJECT;
+  const gate = useComposerGate(busy || (creating && name.trim() === ''));
 
-  const start = async (text: string) => {
+  /** Resolves to false when something failed, so the composer keeps the text. */
+  const start = async (text: string): Promise<boolean> => {
     setBusy(true);
     setError(undefined);
     try {
@@ -42,9 +45,11 @@ export function StartPage() {
       const conversation = await createConversation.mutateAsync({ projectId, title: titleOf(text) });
       await send.mutateAsync({ id: conversation.id, text });
       await navigate(`/c/${conversation.id}`);
+      return true;
     } catch (caught) {
       setError(caught);
       setBusy(false);
+      return false;
     }
   };
 
@@ -75,7 +80,7 @@ export function StartPage() {
           </div>
         ) : null}
       </div>
-      <Composer onSubmit={(text) => void start(text)} disabled={busy || (creating && name.trim() === '')} />
+      <Composer onSubmit={start} {...gate} />
       <ErrorText error={error} />
       {busy ? <p className="text-sm text-muted">Starting…</p> : null}
     </div>

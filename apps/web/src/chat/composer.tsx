@@ -2,7 +2,8 @@ import { ArrowUp, Square } from 'lucide-react';
 import { useState, type KeyboardEvent } from 'react';
 
 interface ComposerProps {
-  onSubmit: (text: string) => void;
+  /** May return a promise; the text stays in the field when it resolves to false (sending failed). */
+  onSubmit: (text: string) => void | boolean | Promise<boolean | void>;
   /** Shown instead of the send button while a run is going; stops the run. */
   onStop?: () => void;
   running?: boolean;
@@ -16,8 +17,9 @@ export function Composer({ onSubmit, onStop, running = false, disabled = false, 
 
   const send = () => {
     if (!canSend) return;
-    onSubmit(text.trim());
-    setText('');
+    void Promise.resolve(onSubmit(text.trim())).then((sent) => {
+      if (sent !== false) setText('');
+    });
   };
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {

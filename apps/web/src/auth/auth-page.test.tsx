@@ -11,13 +11,14 @@ function json(status: number, body?: unknown) {
   });
 }
 
-function renderPage() {
+function renderPage(path = '/login') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={['/login']}>
+      <MemoryRouter initialEntries={[path]}>
         <Routes>
-          <Route path="/login" element={<AuthPage />} />
+          <Route path="/login" element={<AuthPage mode="login" />} />
+          <Route path="/register" element={<AuthPage mode="register" />} />
           <Route path="/" element={<p>Start</p>} />
         </Routes>
       </MemoryRouter>
@@ -58,5 +59,32 @@ describe('AuthPage', () => {
     await userEvent.type(screen.getByLabelText('Password'), 'wrong');
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Invalid credentials');
+  });
+
+  it('has its own address for creating an account and links between the two pages', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => json(401, { message: 'Unauthorized' })),
+    );
+    renderPage();
+    await userEvent.click(await screen.findByRole('link', { name: 'No account yet? Create one' }));
+    expect(await screen.findByRole('heading', { name: 'Create an account' })).toBeVisible();
+    await userEvent.click(screen.getByRole('link', { name: 'Already have an account? Sign in' }));
+    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeVisible();
+  });
+
+  it('opens the sign-in page with a note after the account was created', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (request: Request) =>
+        new URL(request.url).pathname === '/api/auth/register' ? json(202) : json(401, { message: 'Unauthorized' }),
+      ),
+    );
+    renderPage('/register');
+    await userEvent.type(await screen.findByLabelText('Email'), 'a@b.de');
+    await userEvent.type(screen.getByLabelText('Password'), 'secret-password');
+    await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeVisible();
+    expect(screen.getByText(/Account created/)).toBeVisible();
   });
 });

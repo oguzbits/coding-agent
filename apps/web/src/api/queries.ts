@@ -29,6 +29,14 @@ export function useMe() {
   });
 }
 
+/** True while the server would refuse runs because the account's email address is not confirmed yet. */
+export function useRunBlockedByEmail(): boolean {
+  const me = useMe().data;
+  return Boolean(me && me.confirmationRequired && !me.emailConfirmed);
+}
+
+export const BLOCKED_PLACEHOLDER = 'Confirm your email address to start runs.';
+
 export const useProjects = () => useQuery({ queryKey: keys.projects, queryFn: () => unwrap(api.GET('/api/projects')) });
 
 export const useConversations = () =>

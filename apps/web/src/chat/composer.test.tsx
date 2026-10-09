@@ -31,4 +31,13 @@ describe('Composer', () => {
     expect(onStop).toHaveBeenCalled();
     expect(screen.queryByRole('button', { name: 'Send' })).toBeNull();
   });
+
+  it('keeps the text when sending fails, so it is not lost', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(false);
+    render(<Composer onSubmit={onSubmit} />);
+    await userEvent.type(screen.getByLabelText('Message'), 'keep me{Enter}');
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.getByLabelText('Message')).toHaveValue('keep me');
+  });
 });

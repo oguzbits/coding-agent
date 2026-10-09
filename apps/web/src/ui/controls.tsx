@@ -55,7 +55,7 @@ export function ErrorText({ error }: { error: unknown }) {
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-3 border-b border-line-subtle py-6">
-      <h2 className="text-base font-medium">{title}</h2>
+      <h2 className="text-[15px] font-medium">{title}</h2>
       {children}
     </section>
   );
